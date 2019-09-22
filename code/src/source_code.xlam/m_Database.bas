@@ -1,4 +1,4 @@
-Attribute VB_Name = "mDatabase"
+Attribute VB_Name = "m_Database"
 Option Explicit         ' Obriga a declaração de variáveis
 Option Private Module   ' Deixa o módulo privado (invisível)
 
@@ -86,7 +86,7 @@ Private Sub CriaBancoDeDados(Caminho As String)
     oCatalogo.Create "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" & Caminho
     
     ' Rotina para criar tabelas
-    Call CriaTabelas
+    Call CriaTabelas(Caminho)
     
     ' Mensagem de conclusão
     MsgBox "Banco de dados criado com sucesso!", vbInformation
@@ -112,7 +112,43 @@ End Sub
 ' +------------------------------------------+
 
 ' Rotina para criar tabelas no banco de dados
-Private Sub CriaTabelas()
+Private Sub CriaTabelas(Caminho As String)
+
+    Dim tbl As New ADOX.Table
+    
+    ' Abre catálogo
+    With cnn
+        .Provider = "Microsoft.Jet.OLEDB.4.0"       ' Provedor
+        .Open Caminho
+        Set cat.ActiveConnection = cnn
+    End With
+    
+    With tbl
+        .name = "tbl_fornecedores"
+        Set .ParentCatalog = cat
+        With .Columns
+            .Append "id", adInteger
+            .Item("id").Properties("Autoincrement") = True
+            .Append "nome_fantasia", adVarWChar, 60
+            .Item("nome_fantasia").Properties("Description") = "Informe o nome do fornecedor."
+            .Item("nome_fantasia").Properties("Nullable") = False
+            .Append "razao_social"
+            .Append "endereco"
+            .Append "numero"
+            .Append "bairro"
+            .Append "cidade"
+            .Append "estado"
+            .Append "pais"
+            .Append "data_cadastro"
+            .Append "deletado", adBoolean
+        End With
+    End With
+    
+    cat.Tables.Append tbl
+    Set cat = Nothing
+    
+End Sub
+Private Sub CriaTabelasOld()
 
     Dim sNomeTabela As String
     Dim sSQL As String

@@ -1,4 +1,4 @@
-Attribute VB_Name = "mRibbon"
+Attribute VB_Name = "m_Ribbon"
 'Option Private Module
 Public Myribbon As IRibbonUI
 Sub OnActionButton(control As IRibbonControl)

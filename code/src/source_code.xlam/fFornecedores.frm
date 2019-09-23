@@ -16,10 +16,8 @@ Attribute VB_Exposed = False
 Option Explicit
 
 Private oFornecedor         As New cFornecedor
-Private bListBoxOrdenando   As Boolean
 Private colControles        As New Collection
-
-
+Private bListBoxOrdenando   As Boolean
 
 Private Sub UserForm_Initialize()
      
@@ -198,6 +196,7 @@ Private Sub PosDecisaoTomada(Decisao As String)
     MultiPage1.Value = 1
     
     If Decisao = "Inclusão" Then
+        lstPrincipal.ListIndex = -1
         Call Campos("Limpar")
     End If
     
@@ -225,7 +224,7 @@ Private Sub lstPrincipal_Change()
         End If
         
         lblID.Caption = Format(IIf(oFornecedor.ID = 0, "", oFornecedor.ID), "00000")
-        lblHdNomeFantasia.Caption = oFornecedor.NomeFantasia
+        lblCabNomeFantasia.Caption = oFornecedor.NomeFantasia
         txbNomeFantasia.Text = oFornecedor.NomeFantasia
         txbRazaoSocial.Text = oFornecedor.RazaoSocial
         txbEndereco.Text = oFornecedor.Endereco
@@ -288,7 +287,7 @@ Private Sub Campos(Acao As String)
         lblDataCadastro.Enabled = True
     ElseIf Acao = "Limpar" Then
         lblID.Caption = ""
-        lblHdNomeFantasia.Caption = ""
+        lblCabNomeFantasia.Caption = ""
         txbNomeFantasia.Text = ""
         txbRazaoSocial.Text = ""
         txbEndereco.Text = ""
@@ -389,13 +388,6 @@ Private Function Valida() As Boolean
         Valida = True
     End If
     
-End Function
-Private Function CampoObrigatorio() As Boolean
-    'cat.Tables("tbl_forneced
-    
-End Function
-Private Function FormatoCampo() As Variant
-
 End Function
 Private Sub UserForm_Terminate()
     

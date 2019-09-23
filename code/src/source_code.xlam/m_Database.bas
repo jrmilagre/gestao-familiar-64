@@ -132,20 +132,43 @@ Private Sub CriaTabelas(Caminho As String)
             .Append "nome_fantasia", adVarWChar, 60
             .Item("nome_fantasia").Properties("Description") = "Informe o nome do fornecedor."
             .Item("nome_fantasia").Properties("Nullable") = False
-            .Append "razao_social"
-            .Append "endereco"
-            .Append "numero"
-            .Append "bairro"
-            .Append "cidade"
-            .Append "estado"
-            .Append "pais"
-            .Append "data_cadastro"
+            .Append "razao_social", adVarWChar, 120
+            .Append "endereco", adVarWChar, 120
+            .Append "numero", adVarWChar, 15
+            .Append "bairro", adVarWChar, 60
+            .Append "cidade", adVarWChar, 60
+            .Append "estado", adVarWChar, 2
+            .Append "pais", adVarWChar, 60
+            .Append "data_cadastro", adDate
             .Append "deletado", adBoolean
         End With
     End With
     
     cat.Tables.Append tbl
+    
+    Set tbl = New ADOX.Table
+    
+    With tbl
+        .name = "tbl_contas"
+        Set .ParentCatalog = cat
+        With .Columns
+            .Append "id", adInteger
+            .Item("id").Properties("Autoincrement") = True
+            .Append "conta", adVarWChar, 50
+            .Item("conta").Properties("Description") = "Informe o nome da conta."
+            .Item("conta").Properties("Nullable") = False
+            .Append "saldo_inicial", adCurrency
+            .Item("saldo_inicial").Properties("Description") = "Informe o saldo inicial da conta."
+            .Item("saldo_inicial").Properties("Nullable") = False
+            .Append "data_cadastro", adDate
+            .Append "deletado", adBoolean
+        End With
+    End With
+    
+    cat.Tables.Append tbl
+    
     Set cat = Nothing
+    Call Desconecta
     
 End Sub
 Private Sub CriaTabelasOld()

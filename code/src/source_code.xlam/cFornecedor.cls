@@ -118,7 +118,6 @@ Public Sub Inclui()
         Me.ID = .Fields("id").Value
         .Fields("nome_fantasia").Value = Me.NomeFantasia
         .Fields("razao_social").Value = Me.RazaoSocial
-        .Fields("data_cadastro").Value = Me.DataCadastro
         .Fields("endereco").Value = Me.Endereco
         .Fields("numero").Value = Me.Numero
         .Fields("bairro").Value = Me.Bairro
@@ -181,7 +180,7 @@ Public Function PreencheListBox(OrderBy As String) As Collection
     Dim col As New Collection
 
     sSQL = "SELECT id "
-    sSQL = sSQL & "FROM tbl_fornecedores "
+    sSQL = sSQL & "FROM " & tbl & " "
     sSQL = sSQL & "WHERE deletado = False "
     sSQL = sSQL & "ORDER BY " & OrderBy
 

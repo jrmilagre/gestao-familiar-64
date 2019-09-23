@@ -5,7 +5,7 @@ Sub OnActionButton(control As IRibbonControl)
 
     If Conecta() = True Then
         Select Case control.ID
-            'Case "btnContas": fContas.Show
+            Case "btnContas": fContas.Show
             'Case "btnCategorias": fCategorias.Show
             Case "btnFornecedores": fFornecedores.Show
             'Case "btnRegistroRapido"

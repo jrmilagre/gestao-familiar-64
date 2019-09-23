@@ -19,9 +19,11 @@ Private oFornecedor         As New cFornecedor
 Private bListBoxOrdenando   As Boolean
 Private colControles        As New Collection
 
+
+
 Private Sub UserForm_Initialize()
      
-    Call lstPrincipalPopular
+    Call lstPrincipalPopular("nome_fantasia")
     Call cbbEstadoPopular
     Call EventosCampos
     Call Campos("Desabilitar")
@@ -32,6 +34,13 @@ Private Sub UserForm_Initialize()
     
     MultiPage1.Value = 0
 
+End Sub
+Private Sub lblHdFornecedor_Click():
+    Call lstPrincipalPopular("nome_fantasia")
+End Sub
+
+Private Sub lblHdEndereco_Click()
+    Call lstPrincipalPopular("endereco")
 End Sub
 Private Sub lstPrincipal_DblClick(ByVal Cancel As MSForms.ReturnBoolean)
     MultiPage1.Value = 1
@@ -72,27 +81,6 @@ Private Sub EventosCampos()
                     
                 colControles.Add oEvento
                 
-                'oControle.
-            
-                'If Len(oControle.Tag) > 2 Then
-                        
-'                    sTag = IIf(oControle.Tag = "", "", Mid(oControle.Tag, 3, Len(oControle.Tag) - 2))
-'
-'                    If sTag = "DATE" Then
-'                        Set oEvento = New c_EventoCampo
-'                        Set oEvento.cData = oControle
-'                        colControles.Add oEvento
-'                    ElseIf sTag = "MOEDA" Then
-'                        Set oEvento = New c_EventoCampo
-'                        Set oEvento.cMoeda = oControle
-'                        colControles.Add oEvento
-'                    ElseIf sTag = "CPF" Then
-'                        Set oEvento = New c_EventoCampo
-'                        Set oEvento.cCpf = oControle
-'                        colControles.Add oEvento
-'                    End If
-                'End If
-                
             End If
         End If
     Next
@@ -118,35 +106,39 @@ Private Sub btnConfirmar_Click()
             
                 ' Chama método para incluir registro no banco de dados
                 oFornecedor.Inclui
-                
+                Call lstPrincipalPopular("nome_fantasia")
                 ' Inclui registro na ListBox
-                With lstPrincipal
-                    .AddItem
-                    .List(.ListCount - 1, 0) = oFornecedor.NomeFantasia
-                    .List(.ListCount - 1, 1) = oFornecedor.ID
-                End With
+'                With lstPrincipal
+'                    .AddItem
+'                    .List(.ListCount - 1, 0) = oFornecedor.NomeFantasia
+'                    .List(.ListCount - 1, 1) = oFornecedor.ID
+'                    .List(.ListCount - 1, 2) = oFornecedor.Endereco
+'                End With
                     
-                Call ListBoxOrdenar
+                
+                'Call ListBoxOrdenar
                 
             ElseIf sDecisao = vbNewLine & "Alteração" Then
                 
                 ' Chama método para alterar dados no banco de dados
                 oFornecedor.Altera
-                
+                Call lstPrincipalPopular("nome_fantasia")
                 ' Replica as alterações na ListBox
-                With lstPrincipal
-                    .List(.ListIndex, 0) = oFornecedor.NomeFantasia
-                End With
+'                With lstPrincipal
+'                    .List(.ListIndex, 0) = oFornecedor.NomeFantasia
+'                    .List(.ListIndex, 2) = oFornecedor.Endereco
+'                End With
                 
-                Call ListBoxOrdenar
+                
+                'Call ListBoxOrdenar
                     
             ElseIf sDecisao = vbNewLine & "Exclusão" Then
                         
                 ' Chama método para deletar registro do banco de dados
                 oFornecedor.Exclui
-                
+                Call lstPrincipalPopular("nome_fantasia")
                 ' Remove item da ListBox
-                lstPrincipal.RemoveItem (lstPrincipal.ListIndex)
+                'lstPrincipal.RemoveItem (lstPrincipal.ListIndex)
             End If
             
             ' Exibe mensagem de sucesso na decisão tomada (inclusão, alteração ou exclusão do registro).
@@ -240,7 +232,11 @@ Private Sub lstPrincipal_Change()
         txbNumero.Text = oFornecedor.Numero
         txbBairro.Text = oFornecedor.Bairro
         txbCidade.Text = oFornecedor.Cidade
-        cbbEstado.Text = oFornecedor.Estado
+        If oFornecedor.Estado = "" Then
+            cbbEstado.ListIndex = 0
+        Else
+            cbbEstado.Text = oFornecedor.Estado
+        End If
         txbPais.Text = oFornecedor.Pais
         txbDataCadastro.Text = oFornecedor.DataCadastro
     
@@ -302,6 +298,7 @@ Private Sub Campos(Acao As String)
         cbbEstado.ListIndex = -1
         txbPais.Text = ""
         txbDataCadastro.Text = ""
+        lstPrincipal.ListIndex = -1
     End If
 
 End Sub
@@ -335,17 +332,17 @@ Private Sub ListBoxOrdenar()
     bListBoxOrdenando = False
     
 End Sub
-Private Sub lstPrincipalPopular()
+Private Sub lstPrincipalPopular(OrderBy As String)
 
     Dim col As New Collection
     
-    Set col = oFornecedor.PreencheListBox
+    Set col = oFornecedor.PreencheListBox(OrderBy)
     
     With lstPrincipal
         .Clear                              ' Limpa ListBox
         .Enabled = True                     ' Habilita ListBox
-        .ColumnCount = 2                    ' Determina número de colunas
-        .ColumnWidths = "180 pt; 0pt;"      ' Configura largura das colunas
+        .ColumnCount = 3                    ' Determina número de colunas
+        .ColumnWidths = "170 pt; 0pt; 180pt;"      ' Configura largura das colunas
         
         Dim n As Variant
         
@@ -354,9 +351,12 @@ Private Sub lstPrincipalPopular()
             oFornecedor.Carrega CLng(n)
             .List(.ListCount - 1, 0) = oFornecedor.NomeFantasia
             .List(.ListCount - 1, 1) = oFornecedor.ID
+            .List(.ListCount - 1, 2) = oFornecedor.Endereco
         Next n
         
     End With
+    
+    Call Campos("Limpar")
     
 End Sub
 Private Sub cbbEstadoPopular()

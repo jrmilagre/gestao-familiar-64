@@ -176,14 +176,14 @@ Public Sub Exclui()
     cnn.Execute sSQL
     
 End Sub
-Public Function PreencheListBox() As Collection
+Public Function PreencheListBox(OrderBy As String) As Collection
 
     Dim col As New Collection
 
     sSQL = "SELECT id "
     sSQL = sSQL & "FROM tbl_fornecedores "
     sSQL = sSQL & "WHERE deletado = False "
-    sSQL = sSQL & "ORDER BY nome_fantasia "
+    sSQL = sSQL & "ORDER BY " & OrderBy
 
     Set rst = New ADODB.Recordset
     

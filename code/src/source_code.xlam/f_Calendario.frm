@@ -13,12 +13,7 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
-
 Option Explicit
-
-
-
-
 
 Private Sub UserForm_Initialize()
     
@@ -26,7 +21,7 @@ Private Sub UserForm_Initialize()
     'If CInt(dtDate) = 0 Then dtDate = Date
     
     '---Escreve a data de hoje na Label no rodapé do formulário
-    lblHoje = "Hoje: " & Format(Date, sMascaraData)
+    lblHoje.Caption = "Hoje: " & Format(Date, sMascaraData)
     
     '---Calcula a quantidade de dias desde o ano 0 (zero) até a data base
     '---e atribui esse valor ao tamanho do SpinButton

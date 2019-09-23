@@ -9,10 +9,10 @@ Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 Option Explicit
 
-Public WithEvents lblGrupo As MSForms.CommandButton
-Attribute lblGrupo.VB_VarHelpID = -1
+Public WithEvents btnGrupo As MSForms.CommandButton
+Attribute btnGrupo.VB_VarHelpID = -1
 
-Private Sub lblGrupo_Click()
-    lblGrupo.Parent.Tag = lblGrupo.Tag
-    lblGrupo.Parent.Hide
+Private Sub btnGrupo_Click()
+    btnGrupo.Parent.Tag = btnGrupo.Tag
+    btnGrupo.Parent.Hide
 End Sub

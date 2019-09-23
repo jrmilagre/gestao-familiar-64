@@ -7,26 +7,25 @@ Option Explicit
 
 Public Const sMascaraData   As String = "DD/MM/YYYY"   '---formatação de datas
 Public dtDate               As Date
-Dim Rotulos()               As New c_Calendario  '---vetor que armazena todos os Label de dia do Calendário
+Dim Botoes()                As New c_Calendario  '---vetor que armazena todos os Label de dia do Calendário
 
 Function GetCalendario() As Date
-    ' Função GetCalendario
     
-    ' Declara variáveis
-    Dim lTotalRotulos As Long   ' Total de rótulos
+    Dim iTotalBotoes As Integer ' Total de botões
     Dim Ctrl As control
-    Dim frm As f_Calendario      ' Formulário
+    Dim frm As f_Calendario     ' Formulário
     
-    Set frm = New f_Calendario ' Cria novo objeto setando formulário nele
+    Set frm = New f_Calendario  ' Cria novo objeto setando formulário nele
     
     ' Atribui cada um dos Label num elemento do vetor da classe
     For Each Ctrl In frm.Controls
         If Ctrl.name Like "l?c?" Then
-            lTotalRotulos = lTotalRotulos + 1
-            ReDim Preserve Rotulos(1 To lTotalRotulos)
-            Set Rotulos(lTotalRotulos).lblGrupo = Ctrl
+            iTotalBotoes = iTotalBotoes + 1
+            ReDim Preserve Botoes(1 To iTotalBotoes)
+            Set Botoes(iTotalBotoes).btnGrupo = Ctrl
         End If
     Next Ctrl
+    
     frm.Show
     
     ' Se a data escolhida for nula ou inválida, retorna-se a data atual:
@@ -35,7 +34,9 @@ Function GetCalendario() As Date
     Else
         GetCalendario = dtDate
     End If
+    
     Unload frm
+    
 End Function
     
 

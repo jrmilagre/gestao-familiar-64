@@ -167,6 +167,44 @@ Private Sub CriaTabelas(Caminho As String)
     
     cat.Tables.Append tbl
     
+    Set tbl = New ADOX.Table
+    
+    With tbl
+        .name = "tbl_subcategorias"
+        Set .ParentCatalog = cat
+        With .Columns
+            .Append "id", adInteger
+            .Item("id").Properties("Autoincrement") = True
+            .Append "subcategoria", adVarWChar, 70
+            .Item("subcategoria").Properties("Description") = "Informe o nome da subcategoria."
+            .Item("subcategoria").Properties("Nullable") = False
+            .Append "categoria_id", adInteger
+            .Append "deletado", adBoolean
+        End With
+    End With
+    
+    cat.Tables.Append tbl
+    
+    Set tbl = New ADOX.Table
+    
+    With tbl
+        .name = "tbl_categorias"
+        Set .ParentCatalog = cat
+        With .Columns
+            .Append "id", adInteger
+            .Item("id").Properties("Autoincrement") = True
+            .Append "grupo", adVarWChar, 1
+            .Item("grupo").Properties("Description") = "Informe o grupo da categoria."
+            .Item("grupo").Properties("Nullable") = False
+            .Append "categoria", adVarWChar, 50
+            .Item("categoria").Properties("Description") = "Informe o nome da categoria."
+            .Item("categoria").Properties("Nullable") = False
+            .Append "deletado", adBoolean
+        End With
+    End With
+    
+    cat.Tables.Append tbl
+    
     Set cat = Nothing
     Call Desconecta
     

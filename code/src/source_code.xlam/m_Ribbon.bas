@@ -12,7 +12,7 @@ Sub OnActionButton(control As IRibbonControl)
             '    Set oAgendamento = New cAgendamento
             '    oAgendamento.RegistrandoAgendamento = False
             '    fRegistrar.Show
-            'Case "btnAgendamentos": fAgendamentos.Show
+            Case "btnAgendamentos": fAgendamentos.Show
             'Case "btnMovimentacoes": fMovimentacoes.Show
             'Case "btnOrcamentos": fOrcamentos.Show
             Case Else: MsgBox "Botão ainda não implementado", vbInformation

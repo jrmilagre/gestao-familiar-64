@@ -58,8 +58,6 @@ Sair:
         Exit Function
     End If
 
-           
-
 End Function
 
 ' Função para efetuar a desconexão com o banco de dados
@@ -204,6 +202,95 @@ Private Sub CriaTabelas(Caminho As String)
     End With
     
     cat.Tables.Append tbl
+    
+    Set tbl = New ADOX.Table
+    
+    With tbl
+        .name = "tbl_agendamentos"
+        Set .ParentCatalog = cat
+        With .Columns
+            .Append "id", adInteger
+            .Item("id").Properties("Autoincrement") = True
+            .Append "conta_id", adInteger
+            .Item("conta_id").Properties("Description") = "Informe a conta."
+            .Item("conta_id").Properties("Nullable") = False
+            .Append "contapara_id", adInteger
+            .Item("contapara_id").Properties("Description") = "Informe a conta."
+            .Append "subcategoria_id", adInteger
+            .Item("subcategoria_id").Properties("Nullable") = True
+            .Append "fornecedor_id", adInteger
+            .Item("fornecedor_id").Properties("Description") = "Informe o fornecedor."
+            .Item("fornecedor_id").Properties("Nullable") = True
+            .Append "grupo", adVarWChar, 1
+            .Item("grupo").Properties("Description") = "Informe o grupo."
+            .Append "recorrente", adBoolean
+            .Item("recorrente").Properties("Description") = "Informe a recorrencia."
+            .Append "infinito", adBoolean
+            .Item("infinito").Properties("Description") = "Informe se o agendamento é finito."
+            .Append "periodicidade", adVarWChar, 10
+            .Item("periodicidade").Properties("Description") = "Informe a periocididade."
+            .Append "parcelas", adInteger
+            .Item("parcelas").Properties("Description") = "Informe o número de parcelas."
+            .Append "vencimento", adDate
+            .Item("vencimento").Properties("Description") = "Informe a data de vencimento."
+            .Item("vencimento").Properties("Nullable") = False
+            .Append "valor", adCurrency
+            .Item("valor").Properties("Description") = "Informe o valor do agendamento."
+            .Item("valor").Properties("Nullable") = False
+            .Append "observacao", adLongVarWChar
+            .Item("observacao").Properties("Description") = "Acrescente alguma observação se desejar."
+            .Append "parcelas_quitadas", adInteger
+            .Append "parcelas_restantes", adInteger
+            .Append "intervalo", adInteger
+            .Append "deletado", adBoolean
+        End With
+    End With
+    
+    cat.Tables.Append tbl
+    
+    '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Set tbl = New ADOX.Table
+    
+    With tbl
+        .name = "tbl_transferencias"
+        Set .ParentCatalog = cat
+        With .Columns
+            .Append "id", adInteger
+            .Item("id").Properties("Autoincrement") = True
+            .Append "data", adDate
+            .Append "valor", adCurrency
+            .Append "movimentacaode_id", adInteger
+            .Append "movimentacaopara_id", adInteger
+        End With
+    End With
+    
+    cat.Tables.Append tbl
+    '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Set tbl = New ADOX.Table
+    
+    With tbl
+        .name = "tbl_movimentacoes"
+        Set .ParentCatalog = cat
+        With .Columns
+            .Append "id", adInteger
+            .Item("id").Properties("Autoincrement") = True
+            .Append "agendamento_id", adInteger: .Item("agendamento_id").Properties("Nullable") = True
+            .Append "conta_id", adInteger
+            .Append "subcategoria_id", adInteger: .Item("subcategoria_id").Properties("Nullable") = True
+            .Append "fornecedor_id", adInteger: .Item("fornecedor_id").Properties("Nullable") = True
+            .Append "grupo", adVarWChar, 1: .Item("grupo").Properties("Nullable") = True
+            .Append "liquidado", adDate
+            .Append "valor", adCurrency
+            .Append "origem", adVarWChar, 15
+            .Append "observacao", adLongVarWChar: .Item("observacao").Properties("Nullable") = True
+            .Append "parcela", adInteger: .Item("parcela").Properties("Nullable") = True
+            .Append "transferencia_id", adInteger: .Item("transferencia_id").Properties("Nullable") = True
+        End With
+    End With
+    
+    cat.Tables.Append tbl
+    
+    '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     
     Set cat = Nothing
     Call Desconecta

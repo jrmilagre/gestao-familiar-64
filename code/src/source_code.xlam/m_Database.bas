@@ -6,6 +6,8 @@ Public cnn  As ADODB.Connection  ' Objeto de conexão com o banco de dados
 Public rst  As ADODB.Recordset   ' Objeto de armazenamento de dados
 Public cat  As ADOX.Catalog
 Public sSQL As String
+Private Const sBanco As String = "database_teste.mdb"
+Private sCaminho As String
 
 ' Função para efetuar conexão com o banco de dados
 ' ---É necessário habilitar a biblioteca Microsoft ActiveX Data Objects 2.8 Library
@@ -13,13 +15,13 @@ Public sSQL As String
 Public Function Conecta() As Boolean
     
     ' Declara varíavel
-    Dim sCaminho As String
-    Dim vbResultado As VBA.VbMsgBoxResult
     
-    ' Define o caminho do banco de dados
+    Dim vbResultado As VBA.VbMsgBoxResult
+    Dim sCaminho As String
+    
     sCaminho = Mid(wbCode.Path, 1, Len(wbCode.Path) - 5) & _
                Application.PathSeparator & "data" & _
-               Application.PathSeparator & "database.mdb"
+               Application.PathSeparator & sBanco
     
     ' Cria objeto de conexão com o banco de dados
     Set cnn = New ADODB.Connection
@@ -70,8 +72,6 @@ Public Sub Desconecta()
     Set cat = Nothing
 
 End Sub
-
-
 ' Procedimento para criar o banco de dados
 ' --- É necessário habilitar a biblioteca "Microsoft ADO Ext. 2.8 for DDL and Security"
 ' --- para o funcionamento deste procedimento.
@@ -84,123 +84,155 @@ Private Sub CriaBancoDeDados(Caminho As String)
     oCatalogo.Create "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" & Caminho
     
     ' Rotina para criar tabelas
-    Call CriaTabelas(Caminho)
+    Call AtualizaBD
     
     ' Mensagem de conclusão
     MsgBox "Banco de dados criado com sucesso!", vbInformation
     
 End Sub
 
+Private Sub AtualizaBD()
 
-' +------------------------------------------+
-' |Tipos de Dados SQL |Tipos de dados do JET |
-' +------------------------------------------+
-' | BIT               | YES/NO               |
-' | BYTE              | NUMERIC - BYTE       |
-' | COUNTER           | COUNTER -contador    |
-' | CURRENCY          | CURRENCY - Moeda     |
-' | DateTime          | DATE/TIME            |
-' | SINGLE            | NUMERIC - SINGLE     |
-' | DOUBLE            | NUMERIC - DOUBLE     |
-' | SHORT             | NUMERIC - INTEGER    |
-' | LONG              | NUMERIC - LONG       |
-' | LONGTEXT          | MEMO                 |
-' | LONGBINARY        | OLE OBJECTS          |
-' | Text              | Text                 |
-' +------------------------------------------+
+    ' Declara variáveis
+    Dim oCatalogo       As New ADOX.Catalog
+    Dim sCaminho        As String
+    
+    sCaminho = Mid(wbCode.Path, 1, Len(wbCode.Path) - 5) & _
+               Application.PathSeparator & "data" & _
+               Application.PathSeparator & sBanco
+    
+    ' Cria o banco de dados se não existir
+    On Error GoTo Conecta
+    oCatalogo.Create "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" & sCaminho
 
-' Rotina para criar tabelas no banco de dados
-Private Sub CriaTabelas(Caminho As String)
-
-    Dim tbl As New ADOX.Table
+Conecta:
+    Set cnn = New ADODB.Connection
     
     ' Abre catálogo
     With cnn
         .Provider = "Microsoft.Jet.OLEDB.4.0"       ' Provedor
-        .Open Caminho
-        Set cat.ActiveConnection = cnn
+        .Open sCaminho
+        Set oCatalogo.ActiveConnection = cnn        ' Instancia o catálogo
     End With
     
-    With tbl
-        .name = "tbl_fornecedores"
-        Set .ParentCatalog = cat
-        With .Columns
-            .Append "id", adInteger
-            .Item("id").Properties("Autoincrement") = True
-            .Append "nome_fantasia", adVarWChar, 60
-            .Item("nome_fantasia").Properties("Description") = "Informe o nome do fornecedor."
-            .Item("nome_fantasia").Properties("Nullable") = False
-            .Append "razao_social", adVarWChar, 120
-            .Append "endereco", adVarWChar, 120
-            .Append "numero", adVarWChar, 15
-            .Append "bairro", adVarWChar, 60
-            .Append "cidade", adVarWChar, 60
-            .Append "estado", adVarWChar, 2
-            .Append "pais", adVarWChar, 60
-            .Append "data_cadastro", adDate
-            .Append "deletado", adBoolean
-        End With
-    End With
+    '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    '
+
+    Dim FilePath As String
+    Dim sText As String
+    Dim myArray() As String
+    Dim sTableName As String
     
-    cat.Tables.Append tbl
+    FilePath = Mid(wbCode.Path, 1, Len(wbCode.Path) - 5) & _
+               Application.PathSeparator & "data" & _
+               Application.PathSeparator & "date_dictionary.csv"
     
-    Set tbl = New ADOX.Table
+    Open FilePath For Input As #1
     
-    With tbl
-        .name = "tbl_contas"
-        Set .ParentCatalog = cat
-        With .Columns
-            .Append "id", adInteger
-            .Item("id").Properties("Autoincrement") = True
-            .Append "conta", adVarWChar, 50
-            .Item("conta").Properties("Description") = "Informe o nome da conta."
-            .Item("conta").Properties("Nullable") = False
-            .Append "saldo_inicial", adCurrency
-            .Item("saldo_inicial").Properties("Description") = "Informe o saldo inicial da conta."
-            .Item("saldo_inicial").Properties("Nullable") = False
-            .Append "data_cadastro", adDate
-            .Append "deletado", adBoolean
-        End With
-    End With
+    ' Laço para percorrer o arquivo csv que contém o dicionário de dados
+    Do Until EOF(1)
     
-    cat.Tables.Append tbl
+        Line Input #1, sText
+        
+        ' Ignora o cabeçalho
+        If Trim(sText) <> "table;field;type;size;nullable;autoincrement;description" Then
+            
+            myArray = Split(sText, ";")
+                        
+            ' VERIFICA SE EXISTE TABELA
+            If sTableName <> myArray(0) Then
+            
+                Dim oTabela         As New ADOX.Table
+                Dim bExisteTabela   As Boolean
+                
+                bExisteTabela = False
+                
+                For Each oTabela In oCatalogo.Tables
+                    If oTabela.Type = "TABLE" Then
+                        If oTabela.name = myArray(0) Then
+                            bExisteTabela = True
+                            Exit For
+                        End If
+                    End If
+                Next oTabela
+            Else
+                bExisteTabela = True
+            End If
+            
+            sTableName = myArray(0)
+            
+            ' Se tabela não existir, cria tabela no banco de dados
+            If bExisteTabela = False Then
+        
+                With oTabela
+                    .name = myArray(0)
+                    Set .ParentCatalog = oCatalogo
+                End With
+            
+                oCatalogo.Tables.Append oTabela
+            End If
+            
+            ' VERIFICA SE EXISTE CAMPO
+            Dim oCampo          As ADOX.Column
+            Dim bExisteCampo    As Boolean
+            
+            Set oCampo = New ADOX.Column
+            bExisteCampo = False
+            
+            For Each oCampo In oCatalogo.Tables(myArray(0)).Columns
+                
+                If oCampo.name = myArray(1) Then
+                    bExisteCampo = True
+                    Exit For
+                End If
+                
+            Next oCampo
+            
+            Set oCampo = Nothing
+            
+            ' Cria o campo na tabela, caso não exista
+            If bExisteCampo = False Then
+            
+                Set oCampo = New ADOX.Column
+                
+                With oCampo
+                    Set .ParentCatalog = oCatalogo
+                    .name = myArray(1)
+                    .Type = CInt(myArray(2))
+                    
+                    If CInt(myArray(2)) = 202 Then
+                        .DefinedSize = CInt(myArray(3))
+                    End If
+                    
+                    If CInt(myArray(3)) <> 13 Then
+                        .Properties("Nullable").Value = CBool(myArray(4))
+                        .Properties("Autoincrement").Value = CBool(myArray(5))
+                        .Properties("Description").Value = CStr(myArray(6))
+                    End If
+                    
+                End With
+                
+                oCatalogo.Tables(myArray(0)).Columns.Append oCampo
+                
+                Set oCampo = Nothing
+                
+            End If
+        
+        End If
     
-    Set tbl = New ADOX.Table
+    Loop
     
-    With tbl
-        .name = "tbl_subcategorias"
-        Set .ParentCatalog = cat
-        With .Columns
-            .Append "id", adInteger
-            .Item("id").Properties("Autoincrement") = True
-            .Append "subcategoria", adVarWChar, 70
-            .Item("subcategoria").Properties("Description") = "Informe o nome da subcategoria."
-            .Item("subcategoria").Properties("Nullable") = False
-            .Append "categoria_id", adInteger
-            .Append "deletado", adBoolean
-        End With
-    End With
+    Close #1
     
-    cat.Tables.Append tbl
-    
-    Set tbl = New ADOX.Table
-    
-    With tbl
-        .name = "tbl_categorias"
-        Set .ParentCatalog = cat
-        With .Columns
-            .Append "id", adInteger
-            .Item("id").Properties("Autoincrement") = True
-            .Append "grupo", adVarWChar, 1
-            .Item("grupo").Properties("Description") = "Informe o grupo da categoria."
-            .Item("grupo").Properties("Nullable") = False
-            .Append "categoria", adVarWChar, 50
-            .Item("categoria").Properties("Description") = "Informe o nome da categoria."
-            .Item("categoria").Properties("Nullable") = False
-            .Append "deletado", adBoolean
-        End With
-    End With
-    
+    cnn.Close
+    Set oCatalogo = Nothing
+
+End Sub
+
+
+' Rotina para criar tabelas no banco de dados
+Private Sub CriaTabelas(Caminho As String)
+        
     cat.Tables.Append tbl
     
     Set tbl = New ADOX.Table
@@ -296,6 +328,8 @@ Private Sub CriaTabelas(Caminho As String)
     Call Desconecta
     
 End Sub
+
+
 Private Sub CriaTabelasOld()
 
     Dim sNomeTabela As String

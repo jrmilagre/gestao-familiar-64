@@ -269,6 +269,8 @@ Private Function Valida() As Boolean
     
     If txbConta.Text = Empty Then
         MsgBox "Conta é um campo obrigatório", vbInformation: txbConta.SetFocus
+    ElseIf txbSaldoInicial.Text = "" Then
+        MsgBox "Saldo inicial é um campo obrigatório", vbInformation: txbSaldoInicial.SetFocus
     Else
         ' Envia valores preenchidos no formulário para o objeto
         With oConta

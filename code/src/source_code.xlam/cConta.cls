@@ -130,7 +130,7 @@ Public Sub Exclui()
     cnn.Execute sSQL
     
 End Sub
-Public Function PreencheListBox(OrderBy As String) As Collection
+Public Function Listar(OrderBy As String) As Collection
 
     Dim col As New Collection
 
@@ -150,7 +150,7 @@ Public Function PreencheListBox(OrderBy As String) As Collection
 
     Set rst = Nothing
     
-    Set PreencheListBox = col
+    Set Listar = col
 
 End Function
 

@@ -140,7 +140,7 @@ Public Sub Exclui(ID As Long)
     cnn.Execute sSQL
     
 End Sub
-Public Function PreencheListBox(OrderBy As String, CategoriaID As Long) As Collection
+Public Function Listar(OrderBy As String, CategoriaID As Long) As Collection
 
     Dim col As New Collection
 
@@ -161,7 +161,7 @@ Public Function PreencheListBox(OrderBy As String, CategoriaID As Long) As Colle
 
     Set rst = Nothing
     
-    Set PreencheListBox = col
+    Set Listar = col
 
 End Function
 

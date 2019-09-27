@@ -335,7 +335,7 @@ Private Sub lstPrincipalPopular(OrderBy As String)
 
     Dim col As New Collection
     
-    Set col = oFornecedor.PreencheListBox(OrderBy)
+    Set col = oFornecedor.Listar(OrderBy)
     
     With lstPrincipal
         .Clear                              ' Limpa ListBox

@@ -8,12 +8,12 @@ Sub OnActionButton(control As IRibbonControl)
             Case "btnContas": fContas.Show
             Case "btnCategorias": fCategorias.Show
             Case "btnFornecedores": fFornecedores.Show
-            'Case "btnRegistroRapido"
-            '    Set oAgendamento = New cAgendamento
-            '    oAgendamento.RegistrandoAgendamento = False
-            '    fRegistrar.Show
+            Case "btnRegistroRapido"
+                Set oMovimentacao = New cMovimentacao
+                oMovimentacao.IsAgendamento = False
+                fRegistrar.Show
             Case "btnAgendamentos": fAgendamentos.Show
-            'Case "btnMovimentacoes": fMovimentacoes.Show
+            Case "btnMovimentacoes": fMovimentacoes.Show
             'Case "btnOrcamentos": fOrcamentos.Show
             Case Else: MsgBox "Botão ainda não implementado", vbInformation
         End Select

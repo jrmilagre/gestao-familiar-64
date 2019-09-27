@@ -131,7 +131,7 @@ Public Sub Exclui(ID As Long)
     sSQL = "UPDATE tbl_subcategorias SET deletado = True WHERE categoria_id = " & ID
     cnn.Execute sSQL
 End Sub
-Public Function PreencheListBox(OrderBy As String, Grupo As String) As Collection
+Public Function Listar(OrderBy As String, Grupo As String) As Collection
 
     Dim col As New Collection
 
@@ -152,6 +152,17 @@ Public Function PreencheListBox(OrderBy As String, Grupo As String) As Collectio
 
     Set rst = Nothing
     
-    Set PreencheListBox = col
+    Set Listar = col
 
 End Function
+Public Function ListarGrupos() As Collection
+
+    Dim col As New Collection
+    
+    col.Add "Receitas,R"
+    col.Add "Despesas,D"
+    
+    Set ListarGrupos = col
+
+End Function
+

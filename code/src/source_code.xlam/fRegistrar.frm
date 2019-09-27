@@ -1,7 +1,7 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} fRegistrar 
    Caption         =   ":: Registrar ::"
-   ClientHeight    =   5640
+   ClientHeight    =   4950
    ClientLeft      =   120
    ClientTop       =   465
    ClientWidth     =   8100
@@ -256,11 +256,7 @@ Private Sub cbbFornecedor_AfterUpdate()
         
     End If
 End Sub
-Private Sub txbValor_AfterUpdate()
 
-    txbValor.Text = oValidaCampo.CampoValor(txbValor.Text)
-
-End Sub
 Private Sub txbValor_Enter()
     ' Seleciona todos os caracteres do campo
     txbValor.SelStart = 0
@@ -292,7 +288,7 @@ End Sub
 Private Sub txbVencimento_KeyDown(ByVal KeyCode As MSForms.ReturnInteger, ByVal Shift As Integer)
     '---se a tecla F4 for pressionada
     If KeyCode = 115 Then
-        dtDatabase = IIf(txbVencimento.Text = "", Date, txbVencimento.Text)
+        dtDate = IIf(txbVencimento.Text = "", Date, txbVencimento.Text)
         txbVencimento.Text = GetCalendario
     ElseIf KeyCode = 13 Then
         If chbTransferencia.Value = False Then
@@ -418,7 +414,7 @@ Private Sub btnCancelar_Click()
     
     Dim i As Integer
     
-    If oAgendamento.RegistrandoAgendamento = True Then
+    If oMovimentacao.IsAgendamento = True Then
     
         If colAgendamentos.Count = 1 Then
             colAgendamentos.Remove 1
@@ -443,86 +439,60 @@ End Sub
 
 Private Sub ComboBoxCarregarCategorias()
     
-    Dim sCategoria As String
+    Dim col         As Collection
+    Dim n           As Variant
+    Dim sCategoria  As String
     
-    ' Preenche combo Categoria
-    sSQL = "SELECT id, categoria "
-    sSQL = sSQL & "FROM tbl_categorias "
-    sSQL = sSQL & "WHERE grupo = '" & oMovimentacao.Grupo & "' "
-    sSQL = sSQL & "ORDER BY categoria"
-    
-    ' Cria novo objeto recordset
-    Set rst = New ADODB.Recordset
-    
-    ' Atribui resultado da consulta SQL ao recordset
-    With rst
-        .CursorLocation = adUseServer
-        .Open Source:=sSQL, _
-              ActiveConnection:=cnn, _
-              CursorType:=adOpenDynamic, _
-              LockType:=adLockOptimistic, _
-              Options:=adCmdText
-    End With
+    Set col = oCategoria.Listar("categoria", oMovimentacao.Grupo)
     
     sCategoria = cbbCategoria.Text
+    cbbCategoria.Clear
     
-    With cbbCategoria
-        .Clear
-        Do Until rst.EOF
+    For Each n In col
+    
+        oCategoria.Carrega CLng(n)
+        
+        With cbbCategoria
             .AddItem
-            .List(.ListCount - 1, 0) = rst.Fields("categoria").Value
-            .List(.ListCount - 1, 1) = rst.Fields("id").Value
-            rst.MoveNext
-        Loop
-    End With
+            .List(.ListCount - 1, 0) = oCategoria.Categoria
+            .List(.ListCount - 1, 1) = oCategoria.ID
+        End With
     
-    Set rst = Nothing
-    
+    Next n
+
     If sCategoria = "" Then cbbCategoria.ListIndex = -1 Else cbbCategoria.Text = sCategoria
+    
 End Sub
 
 Private Sub ComboBoxCarregarSubcategorias()
     
-    Dim sSubcategoria As String
+    Dim col             As Collection
+    Dim n               As Variant
+    Dim sSubcategoria   As String
     
-    ' Carrega combo Subcategorias
-    sSQL = "SELECT id, subcategoria FROM tbl_subcategorias "
-    sSQL = sSQL & "WHERE categoria_id = " & oSubcategoria.CategoriaID & " "
-    sSQL = sSQL & "ORDER BY subcategoria"
-    
-    ' Cria novo objeto recordset
-    Set rst = New ADODB.Recordset
-    
-    ' Atribui resultado da consulta SQL ao recordset
-    With rst
-        .CursorLocation = adUseServer
-        .Open Source:=sSQL, _
-              ActiveConnection:=cnn, _
-              CursorType:=adOpenDynamic, _
-              LockType:=adLockOptimistic, _
-              Options:=adCmdText
-    End With
+    Set col = oSubcategoria.Listar("subcategoria", oSubcategoria.CategoriaID)
     
     sSubcategoria = cbbSubcategoria.Text
+    cbbSubcategoria.Clear
     
-    With cbbSubcategoria
-        .Clear
-        Do Until rst.EOF
+    For Each n In col
+    
+        oSubcategoria.Carrega CLng(n)
+    
+        With cbbSubcategoria
             .AddItem
-            .List(.ListCount - 1, 0) = rst.Fields("subcategoria")
-            .List(.ListCount - 1, 1) = rst.Fields("id")
+            .List(.ListCount - 1, 0) = oSubcategoria.Subcategoria
+            .List(.ListCount - 1, 1) = oSubcategoria.ID
+        End With
     
-            rst.MoveNext
-        Loop
-    End With
-    
-    Set rst = Nothing
+    Next n
     
     If sSubcategoria = "" Or cbbSubcategoria.ListIndex = -1 Then
         cbbSubcategoria.ListIndex = -1
     Else
         cbbSubcategoria.Text = sSubcategoria
     End If
+
 End Sub
 
 Private Sub btnRegistrar_Click()
@@ -705,89 +675,69 @@ Private Function Valida() As Boolean
 End Function
 Private Sub ComboBoxCarregarContas()
 
-    ' Declara variáveis
-    Dim rstContas As ADODB.Recordset
+    Dim col As New Collection
+    Dim n   As Variant
     Dim sContaDe As String
     Dim sContaPara As String
-
-    ' Cria novo objeto recordset
-    Set rstContas = New ADODB.Recordset
     
-    ' Carrega combo Contas De
-    sSQL = "SELECT id, conta FROM tbl_contas ORDER BY conta"
+    Set col = oConta.Listar("conta")
     
-    ' Atribui resultado da consulta SQL ao recordset
-    With rstContas
-        .CursorLocation = adUseServer
-        .Open Source:=sSQL, _
-              ActiveConnection:=cnn, _
-              CursorType:=adOpenDynamic, _
-              LockType:=adLockOptimistic, _
-              Options:=adCmdText
-    End With
-    
-    ' Atribui conteúdo dos Textbox as variáveis
-    If oAgendamento.ContaID = 0 Then
+    If oMovimentacao.ContaID = 0 Then
         sContaDe = cbbContaDe.Text
         sContaPara = cbbContaPara.Text
     Else
         sContaDe = oConta.Conta
         sContaPara = oContaPara.Conta
-        
-        ' oConta.Carrega oAgendamento.ContaID
-        ' oContaPara.Carrega oAgendamento.ContaParaID
     End If
     
-    
-    
-    ' Limpa os Combobox
     cbbContaDe.Clear
     cbbContaPara.Clear
-    
-    ' Laço para popular as Combobox
-    Do Until rstContas.EOF
+       
+    For Each n In col
+        
+        oConta.Carrega CLng(n)
     
         With cbbContaDe
             .AddItem
-            .List(.ListCount - 1, 0) = rstContas.Fields("conta").Value
-            .List(.ListCount - 1, 1) = rstContas.Fields("id").Value
+            .List(.ListCount - 1, 0) = oConta.Conta
+            .List(.ListCount - 1, 1) = oConta.ID
         End With
         
         With cbbContaPara
             .AddItem
-            .List(.ListCount - 1, 0) = rstContas.Fields("conta").Value
-            .List(.ListCount - 1, 1) = rstContas.Fields("id").Value
+            .List(.ListCount - 1, 0) = oConta.Conta
+            .List(.ListCount - 1, 1) = oConta.ID
         End With
         
-        rstContas.MoveNext
-    Loop
+    Next n
     
-    ' Destrói recordset
-    Set rstContas = Nothing
-    
-    ' Trata a Combobox quando o conteúdo for branco
     If sContaDe = "" Then cbbContaDe.ListIndex = -1 Else cbbContaDe.Text = sContaDe
     If sContaPara = "" Then cbbContaPara.ListIndex = -1 Else cbbContaPara.Text = sContaPara
     
 End Sub
     
 Private Sub ComboBoxCarregar()
+
+    Dim col As Collection
+    Dim n   As Variant
+    Dim s() As String
     
     ' Se for um REGISTRO DIRETO, então sai da rotina de popular comboboxes
     If oMovimentacao.IsAgendamento = False Then
         
         ' Carrega combo Grupos
-        With cbbGrupo
-            .AddItem
-            .List(.ListCount - 1, 0) = "Receitas"
-            .List(.ListCount - 1, 1) = "R"
-            .AddItem
-            .List(.ListCount - 1, 0) = "Despesas"
-            .List(.ListCount - 1, 1) = "D"
-            .AddItem
-            .List(.ListCount - 1, 0) = "Investimento"
-            .List(.ListCount - 1, 1) = "I"
-        End With
+        Set col = oCategoria.ListarGrupos
+        
+        For Each n In col
+        
+            s() = Split(n, ",")
+            
+            With cbbGrupo
+                .AddItem
+                .List(.ListCount - 1, 0) = s(0)
+                .List(.ListCount - 1, 1) = s(1)
+            End With
+        Next n
         
         
     ' Se for um AGENDAMENTO, então ...
@@ -796,79 +746,59 @@ Private Sub ComboBoxCarregar()
         If oMovimentacao.IsTransferencia = False Then
         
             ' Carrega combo Grupos
-            With cbbGrupo
-                .AddItem
-                .List(.ListCount - 1, 0) = "Receitas"
-                .List(.ListCount - 1, 1) = "R"
-                .AddItem
-                .List(.ListCount - 1, 0) = "Despesas"
-                .List(.ListCount - 1, 1) = "D"
-                .AddItem
-                .List(.ListCount - 1, 0) = "Investimento"
-                .List(.ListCount - 1, 1) = "I"
-            End With
+            Set col = oCategoria.ListarGrupos
+            
+            For Each n In col
+            
+                s() = Split(n, ",")
+                
+                With cbbGrupo
+                    .AddItem
+                    .List(.ListCount - 1, 0) = s(0)
+                    .List(.ListCount - 1, 1) = s(1)
+                End With
+            Next n
+            
+            
         
             ' Carrega combo Categoria
-            sSQL = "SELECT id, categoria "
-            sSQL = sSQL & "FROM tbl_categorias "
-            sSQL = sSQL & "WHERE grupo = '" & oAgendamento.Grupo & "' "
-            sSQL = sSQL & "ORDER BY categoria"
+            Set col = oCategoria.Listar("categoria", oAgendamento.Grupo)
             
-            ' Cria novo objeto recordset
-            Set rst = New ADODB.Recordset
+            cbbCategoria.Clear
             
-            ' Atribui resultado da consulta SQL ao recordset
-            With rst
-                .CursorLocation = adUseServer
-                .Open Source:=sSQL, _
-                      ActiveConnection:=cnn, _
-                      CursorType:=adOpenDynamic, _
-                      LockType:=adLockOptimistic, _
-                      Options:=adCmdText
-            End With
+            For Each n In col
             
-            With cbbCategoria
-                .Clear
-                Do Until rst.EOF
+                oCategoria.Carrega CLng(n)
+                
+                With cbbCategoria
                     .AddItem
-                    .List(.ListCount - 1, 0) = rst.Fields("categoria").Value
-                    .List(.ListCount - 1, 1) = rst.Fields("id").Value
-                    
-                    rst.MoveNext
-                Loop
-                
-                
-                .Text = oCategoria.Categoria
-            End With
+                    .List(.ListCount - 1, 0) = oCategoria.Categoria
+                    .List(.ListCount - 1, 1) = oCategoria.ID
+                End With
+            
+            Next n
+            
+            cbbCategoria.Text = oCategoria.Categoria
             
             ' Carrega o combobox Subcategoria
-            sSQL = "SELECT id, subcategoria FROM tbl_subcategorias "
-            sSQL = sSQL & "WHERE categoria_id = " & oSubcategoria.CategoriaID & " "
-            sSQL = sSQL & "ORDER BY subcategoria"
+            Set col = oSubcategoria.Listar("subcategoria", oSubcategoria.CategoriaID)
+    
+            cbbSubcategoria.Clear
             
-            ' Cria novo objeto recordset
-            Set rst = New ADODB.Recordset
+            For Each n In col
             
-            ' Atribui resultado da consulta SQL ao recordset
-            With rst
-                .CursorLocation = adUseServer
-                .Open Source:=sSQL, _
-                      ActiveConnection:=cnn, _
-                      CursorType:=adOpenDynamic, _
-                      LockType:=adLockOptimistic, _
-                      Options:=adCmdText
-            End With
+                oSubcategoria.Carrega CLng(n)
             
-            With cbbSubcategoria
-                .Clear
-                Do Until rst.EOF
+                With cbbSubcategoria
                     .AddItem
-                    .List(.ListCount - 1, 0) = rst.Fields("subcategoria").Value
-                    .List(.ListCount - 1, 1) = rst.Fields("id").Value
-                    rst.MoveNext
-                Loop
-                .Text = oSubcategoria.Subcategoria
-            End With
+                    .List(.ListCount - 1, 0) = oSubcategoria.Subcategoria
+                    .List(.ListCount - 1, 1) = oSubcategoria.ID
+                End With
+            
+            Next n
+            
+            cbbSubcategoria.Text = oSubcategoria.Subcategoria
+'~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         
         ' Se AGENDAMENTO for uma TRANSFERÊNCIA ENTRE CONTAS
         Else
@@ -883,32 +813,22 @@ Private Sub ComboBoxCarregar()
 End Sub
 Private Sub ComboBoxCarregarFornecedores()
 
-    ' Carrega combo Fornecedores
-    sSQL = "SELECT id, nome_fantasia FROM tbl_fornecedores ORDER BY nome_fantasia"
+    Dim col As New Collection
+    Dim n   As Variant
+
+    Set col = oFornecedor.Listar("nome_fantasia")
     
-    ' Cria novo objeto recordset
-    Set rst = New ADODB.Recordset
+    For Each n In col
+        
+        oFornecedor.Carrega CLng(n)
     
-    ' Atribui resultado da consulta SQL ao recordset
-    With rst
-        .CursorLocation = adUseServer
-        .Open Source:=sSQL, _
-              ActiveConnection:=cnn, _
-              CursorType:=adOpenDynamic, _
-              LockType:=adLockOptimistic, _
-              Options:=adCmdText
-    End With
-    
-    With cbbFornecedor
-        .Clear
-        Do Until rst.EOF
+        With cbbFornecedor
             .AddItem
-            .List(.ListCount - 1, 0) = rst.Fields("nome_fantasia").Value
-            .List(.ListCount - 1, 1) = rst.Fields("id").Value
-            rst.MoveNext
-        Loop
-    End With
+            .List(.ListCount - 1, 0) = oFornecedor.NomeFantasia
+            .List(.ListCount - 1, 1) = oFornecedor.ID
+        End With
+        
+    Next n
     
-    Set rst = Nothing
 End Sub
 

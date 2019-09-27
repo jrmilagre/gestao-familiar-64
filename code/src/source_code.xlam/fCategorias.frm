@@ -87,7 +87,7 @@ Private Sub lstSubcategoriasCarregar()
     Dim n As Variant
     Dim col As New Collection
     
-    Set col = oSubcategoria.PreencheListBox("subcategoria", CLng(lstCategorias.List(lstCategorias.ListIndex, 1)))
+    Set col = oSubcategoria.Listar("subcategoria", CLng(lstCategorias.List(lstCategorias.ListIndex, 1)))
     
     With lstSubcategorias
         .Clear
@@ -265,7 +265,7 @@ Private Sub lstCategoriasCarregar()
     
     Dim col As New Collection
 
-    Set col = oCategoria.PreencheListBox("categoria", cbbGrupo.List(cbbGrupo.ListIndex, 1))
+    Set col = oCategoria.Listar("categoria", cbbGrupo.List(cbbGrupo.ListIndex, 1))
     
     With lstCategorias
         .Clear                              ' Limpa ListBox

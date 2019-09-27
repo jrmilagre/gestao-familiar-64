@@ -36,7 +36,7 @@ Private Sub lstPrincipalPopular(OrderBy As String)
 
     Dim col As New Collection
     
-    Set col = oConta.PreencheListBox(OrderBy)
+    Set col = oConta.Listar(OrderBy)
     
     With lstPrincipal
         .Clear                              ' Limpa ListBox

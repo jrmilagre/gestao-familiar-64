@@ -27,6 +27,7 @@ Private Type TMovimentacao
     TransferenciaID     As Long
     IsAgendamento       As Boolean
     IsTransferencia     As Boolean
+    DiasExtrato         As Long
 End Type
 
 Private This As TMovimentacao
@@ -94,6 +95,9 @@ Public Property Let IsAgendamento(ByVal Value As Boolean): This.IsAgendamento = 
 Public Property Get IsTransferencia() As Boolean: IsTransferencia = This.IsTransferencia: End Property
 Public Property Let IsTransferencia(ByVal Value As Boolean): This.IsTransferencia = Value: End Property
 
+Public Property Get DiasExtrato() As Long: DiasExtrato = This.DiasExtrato: End Property
+Public Property Let DiasExtrato(ByVal Value As Long): This.DiasExtrato = Value: End Property
+
 Public Sub Carrega(ID As Long)
 
     Dim rstContaPara As ADODB.Recordset
@@ -157,7 +161,6 @@ Public Sub Carrega(ID As Long)
                       Options:=adCmdText
             End With
                 
-            
             If Me.Valor > 0 Then
                 Me.ContaID = rstContaPara.Fields("id").Value
                 Me.ContaParaID = rst.Fields("conta_id").Value
@@ -609,7 +612,89 @@ Public Sub Exclui(Transferencia As Boolean, Valor As Currency, Agendamento As Bo
     End If
 
 End Sub
+Public Function PreencheListBoxContas(OrderBy As String) As Collection
 
+    Dim col As New Collection
 
+    sSQL = "SELECT id "
+    sSQL = sSQL & "FROM tbl_contas "
+    sSQL = sSQL & "WHERE deletado = False "
+    sSQL = sSQL & "ORDER BY " & OrderBy
 
+    Set rst = New ADODB.Recordset
+    
+    rst.Open sSQL, cnn, adOpenStatic
 
+    Do Until rst.EOF = True
+        col.Add rst.Fields("id").Value
+        rst.MoveNext
+    Loop
+
+    Set rst = Nothing
+    
+    Set PreencheListBoxContas = col
+
+End Function
+Public Function SaldoAnteriorExtrato(ContaID As Integer) As Currency
+
+    Dim Dias As Long
+    
+    Dias = IIf(Me.DiasExtrato = 0, 30, Me.DiasExtrato)
+
+    sSQL = "SELECT SUM(valor) as saldo_anterior "
+    sSQL = sSQL & "FROM tbl_movimentacoes "
+    sSQL = sSQL & "WHERE "
+    sSQL = sSQL & "conta_id = " & ContaID & " and "
+    sSQL = sSQL & "liquidado < DATE() - " & Dias & " "
+    
+    Set rst = New ADODB.Recordset
+    
+    rst.Open sSQL, cnn
+    
+    SaldoAnteriorExtrato = IIf(IsNull(rst.Fields("saldo_anterior").Value), 0, rst.Fields("saldo_anterior").Value)
+    
+    Set rst = Nothing
+
+End Function
+Public Function ListaMovimentacoes(ContaID As Integer) As Collection
+
+    Dim col As New Collection
+    Dim Dias As Long
+    
+    Dias = IIf(Me.DiasExtrato = 0, 30, Me.DiasExtrato)
+
+    sSQL = "SELECT id "
+    sSQL = sSQL & "FROM " & tbl & " "
+    sSQL = sSQL & "WHERE "
+    sSQL = sSQL & "conta_id = " & ContaID & " and "
+    sSQL = sSQL & "liquidado >= DATE() - " & Dias & " "
+    sSQL = sSQL & "ORDER BY liquidado"
+
+    Set rst = New ADODB.Recordset
+    
+    rst.Open sSQL, cnn, adOpenStatic
+
+    Do Until rst.EOF = True
+        col.Add rst.Fields("id").Value
+        rst.MoveNext
+    Loop
+
+    Set rst = Nothing
+    
+    Set ListaMovimentacoes = col
+
+End Function
+
+Public Function CarregaContaID(ID As Long) As Long
+
+    sSQL = "SELECT conta_id FROM tbl_movimentacoes WHERE id = " & ID
+    
+    Set rst = New ADODB.Recordset
+    
+    rst.Open sSQL, cnn
+
+    CarregaContaID = rst.Fields("conta_id").Value
+    
+    Set rst = Nothing
+    
+End Function

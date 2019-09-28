@@ -23,15 +23,16 @@ Private oSubcategoria   As New cSubcategoria
 Private oMovimentacao   As New cMovimentacao
 Private oTransferencia  As New cTransferencia
 Private oAgendamento    As New cAgendamento
+Private colControles    As New Collection
 Private sDecisao        As String
 Private iDias           As Integer
-
 Private Sub UserForm_Initialize()
     
     Call lstContasPopular
     Call cbbGrupoPopular
     Call cbbContaPopular
     Call cbbFornecedorPopular
+    Call EventosCampos("tbl_movimentacoes")
     Call Campos("Desabilitar")
     
     btnAlterar.Enabled = False
@@ -48,6 +49,26 @@ Private Sub UserForm_Initialize()
     btn90dias.Enabled = False
     
     btnIncluir.SetFocus
+
+End Sub
+Private Sub EventosCampos(Tabela As String)
+
+    ' Declara variáveis
+    Dim oControle   As MSForms.control
+    Dim sTag        As String
+    Dim iType       As Integer
+    Dim bNullable   As Boolean
+    
+    ' Laço para percorrer todos os TextBox e atribuir eventos
+    ' de acordo com o tipo de cada campo
+    For Each oControle In Me.Controls
+    
+        If Len(oControle.Tag) > 0 Then
+            Set oEvento = New c_EventoCampo
+            Set oEvento = oEvento.Evento(oControle, Tabela)
+            colControles.Add oEvento
+        End If
+    Next
 
 End Sub
 
@@ -211,68 +232,6 @@ Private Sub cbbFornecedor_AfterUpdate()
             End If
         End If
     End If
-End Sub
-Private Sub txbValor_AfterUpdate()
-    If IsNumeric(txbValor) Then
-        txbValor.Text = Format(txbValor.Text, "#,##0.00")
-        Exit Sub
-    Else
-        txbValor.Text = Empty
-    End If
-End Sub
-Private Sub txbValor_Enter()
-    ' Seleciona todos os caracteres do campo
-    txbValor.SelStart = 0
-    txbValor.SelLength = Len(txbValor.Text)
-End Sub
-Private Sub txbValor_KeyPress(ByVal KeyAscii As MSForms.ReturnInteger)
-
-    Select Case KeyAscii
-        Case 8          ' Backspace (seta de apagar)
-        Case 48 To 57   ' Números de 0 a 9
-        Case 44         ' Vírgula
-        If InStr(txbValor.Text, ",") Then ' Se o campo já tiver vírgula então ele não adiciona
-            KeyAscii = 0 ' Não adiciona a vírgula caso ja tenha
-        Else
-            KeyAscii = 44 ' Adiciona uma vírgula
-        End If
-        Case Else
-            KeyAscii = 0 ' Não deixa nenhuma outra caractere ser escrito
-    End Select
-End Sub
-Private Sub txbLiquidado_AfterUpdate()
-    If IsDate(txbLiquidado.Text) Then
-        txbLiquidado.Text = Format(txbLiquidado.Text, "dd/mm/yyyy")
-        Exit Sub
-    Else
-        txbLiquidado.Text = Empty
-    End If
-End Sub
-Private Sub txbLiquidado_KeyDown(ByVal KeyCode As MSForms.ReturnInteger, ByVal Shift As Integer)
-    '---se a tecla F4 for pressionada
-    If KeyCode = 115 Then
-        dtDate = IIf(txbLiquidado.Text = "", Date, txbLiquidado.Text)
-        txbLiquidado.Text = GetCalendario
-    ElseIf KeyCode = 13 Then
-        If chbTransferencia.Value = False Then
-            cbbGrupo.SetFocus
-            cbbGrupo.DropDown
-        Else
-            btnConfirmar.SetFocus
-        End If
-    End If
-End Sub
-Private Sub txbLiquidado_KeyPress(ByVal KeyAscii As MSForms.ReturnInteger)
-    With txbLiquidado
-        Select Case KeyAscii
-            Case 8                      ' Aceita o BACK SPACE
-            Case 13: SendKeys "{TAB}"   ' Emula o TAB
-            Case 48 To 57
-                If .SelStart = 2 Then .SelText = "/"
-                If .SelStart = 5 Then .SelText = "/"
-            Case Else: KeyAscii = 0     ' Ignora os outros caracteres
-        End Select
-    End With
 End Sub
 Private Sub btnVencimento_Click()
     dtDatabase = IIf(txbLiquidado.Text = Empty, Date, txbLiquidado.Text)

@@ -35,6 +35,33 @@ Public Property Let MaxLength(ByVal Value As Integer): This.MaxLength = Value: E
 ' Types:
 ' 6 - Currency
 ' 7 - Date
+'Public Function Evento() as
+
+Public Function Evento(Controle As MSForms.control, Tabela As String) As Variant
+    
+    If TypeName(Controle) = "TextBox" Then
+        
+        With Me
+            Controle.ControlTipText = cat.Tables(Tabela).Columns(Controle.Tag).Properties("Description").Value
+            
+            .FieldType = cat.Tables(Tabela).Columns(Controle.Tag).Type
+            
+            If .FieldType = 6 Then
+                Controle.TextAlign = fmTextAlignRight
+            End If
+            
+            .MaxLength = cat.Tables(Tabela).Columns(Controle.Tag).DefinedSize
+            .Nullable = cat.Tables(Tabela).Columns(Controle.Tag).Properties("Nullable")
+            
+            Set .cGeneric = Controle
+            
+        End With
+        
+    End If
+    
+    Set Evento = Me
+    
+End Function
 
 Private Sub cGeneric_KeyPress(ByVal KeyAscii As MSForms.ReturnInteger)
        

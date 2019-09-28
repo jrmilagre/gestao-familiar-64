@@ -17,12 +17,11 @@ Option Explicit
 
 Private oConta              As New cConta
 Private colControles        As New Collection
-Private Const tbl           As String = "tbl_contas"
 
 Private Sub UserForm_Initialize()
      
     Call lstPrincipalPopular("conta")
-    Call EventosCampos
+    Call EventosCampos("tbl_contas")
     Call Campos("Desabilitar")
     
     btnCancelar.Visible = False: btnConfirmar.Visible = False
@@ -83,11 +82,10 @@ End Sub
 Private Sub lstPrincipal_DblClick(ByVal Cancel As MSForms.ReturnBoolean)
     MultiPage1.Value = 1
 End Sub
-Private Sub EventosCampos()
+Private Sub EventosCampos(Tabela As String)
 
     ' Declara variáveis
     Dim oControle   As MSForms.control
-    Dim oEvento     As c_EventoCampo
     Dim sTag        As String
     Dim iType       As Integer
     Dim bNullable   As Boolean
@@ -96,32 +94,40 @@ Private Sub EventosCampos()
     ' de acordo com o tipo de cada campo
     For Each oControle In Me.Controls
     
+        
+    
         If Len(oControle.Tag) > 0 Then
         
-            If TypeName(oControle) = "TextBox" Then
-                
-                Set oEvento = New c_EventoCampo
-                
-                With oEvento
-                    oControle.ControlTipText = cat.Tables(tbl).Columns(oControle.Tag).Properties("Description").Value
-                    
-                    .FieldType = cat.Tables(tbl).Columns(oControle.Tag).Type
-                    
-                    If .FieldType = 6 Then
-                        oControle.TextAlign = fmTextAlignRight
-                    End If
-                    
-                    .MaxLength = cat.Tables(tbl).Columns(oControle.Tag).DefinedSize
-                    .Nullable = cat.Tables(tbl).Columns(oControle.Tag).Properties("Nullable")
-                    
-                    Set .cGeneric = oControle
-                    
-                End With
-                    
-                colControles.Add oEvento
-                
+            '~~~~~~~~~~~~
+            Set oEvento = New c_EventoCampo
+            Set oEvento = oEvento.Evento(oControle, Tabela)
+            colControles.Add oEvento
+            '~~~~~~~~~~~~
+        
+'            If TypeName(oControle) = "TextBox" Then
+'
+'                Set oEvento = New c_EventoCampo
+'
+'                With oEvento
+'                    oControle.ControlTipText = cat.Tables(tbl).Columns(oControle.Tag).Properties("Description").Value
+'
+'                    .FieldType = cat.Tables(tbl).Columns(oControle.Tag).Type
+'
+'                    If .FieldType = 6 Then
+'                        oControle.TextAlign = fmTextAlignRight
+'                    End If
+'
+'                    .MaxLength = cat.Tables(tbl).Columns(oControle.Tag).DefinedSize
+'                    .Nullable = cat.Tables(tbl).Columns(oControle.Tag).Properties("Nullable")
+'
+'                    Set .cGeneric = oControle
+'
+'                End With
+'
+'                oControle.Add oEvento
+'
+'            End If
             End If
-        End If
     Next
 
 End Sub

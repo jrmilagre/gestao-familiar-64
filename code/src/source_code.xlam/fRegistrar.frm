@@ -21,9 +21,12 @@ Private oFornecedor     As New cFornecedor
 Private oCategoria      As New cCategoria
 Private oSubcategoria   As New cSubcategoria
 Private oTransferencia  As New cTransferencia
-
+Private colControles    As New Collection
+Private Const tbl       As String = "tbl_movimentacoes"
 
 Private Sub UserForm_Initialize()
+
+    Call EventosCampos("tbl_movimentacoes")
     
     ' Se for uma MOVIMENTAÇÃO de origem de agendamento, então ...
     If oMovimentacao.IsAgendamento = True Then
@@ -125,6 +128,26 @@ Private Sub UserForm_Initialize()
 
     End If
     
+End Sub
+Private Sub EventosCampos(Tabela As String)
+
+    ' Declara variáveis
+    Dim oControle   As MSForms.control
+    Dim sTag        As String
+    Dim iType       As Integer
+    Dim bNullable   As Boolean
+    
+    ' Laço para percorrer todos os TextBox e atribuir eventos
+    ' de acordo com o tipo de cada campo
+    For Each oControle In Me.Controls
+    
+        If Len(oControle.Tag) > 0 Then
+            Set oEvento = New c_EventoCampo
+            Set oEvento = oEvento.Evento(oControle, Tabela)
+            colControles.Add oEvento
+        End If
+    Next
+
 End Sub
 Private Sub chbTransferencia_AfterUpdate()
     cbbContaDe.SetFocus
@@ -253,26 +276,6 @@ Private Sub cbbFornecedor_AfterUpdate()
     End If
 End Sub
 
-Private Sub txbValor_Enter()
-    ' Seleciona todos os caracteres do campo
-    txbValor.SelStart = 0
-    txbValor.SelLength = Len(txbValor.Text)
-End Sub
-Private Sub txbValor_KeyPress(ByVal KeyAscii As MSForms.ReturnInteger)
-
-    Select Case KeyAscii
-        Case 8          ' Backspace (seta de apagar)
-        Case 48 To 57   ' Números de 0 a 9
-        Case 44         ' Vírgula
-        If InStr(txbValor.Text, ",") Then ' Se o campo já tiver vírgula então ele não adiciona
-            KeyAscii = 0 ' Não adiciona a vírgula caso ja tenha
-        Else
-            KeyAscii = 44 ' Adiciona uma vírgula
-        End If
-        Case Else
-            KeyAscii = 0 ' Não deixa nenhuma outra caractere ser escrito
-    End Select
-End Sub
 Private Sub txbVencimento_AfterUpdate()
     If IsDate(txbVencimento.Text) Then
         txbVencimento.Text = Format(txbVencimento.Text, "dd/mm/yyyy")
@@ -280,32 +283,6 @@ Private Sub txbVencimento_AfterUpdate()
     Else
         txbVencimento.Text = Empty
     End If
-End Sub
-Private Sub txbVencimento_KeyDown(ByVal KeyCode As MSForms.ReturnInteger, ByVal Shift As Integer)
-    '---se a tecla F4 for pressionada
-    If KeyCode = 115 Then
-        dtDate = IIf(txbVencimento.Text = "", Date, txbVencimento.Text)
-        txbVencimento.Text = GetCalendario
-    ElseIf KeyCode = 13 Then
-        If chbTransferencia.Value = False Then
-            cbbGrupo.SetFocus
-            cbbGrupo.DropDown
-        Else
-            btnRegistrar.SetFocus
-        End If
-    End If
-End Sub
-Private Sub txbVencimento_KeyPress(ByVal KeyAscii As MSForms.ReturnInteger)
-    With txbVencimento
-        Select Case KeyAscii
-            Case 8                      ' Aceita o BACK SPACE
-            Case 13: SendKeys "{TAB}"   ' Emula o TAB
-            Case 48 To 57
-                If .SelStart = 2 Then .SelText = "/"
-                If .SelStart = 5 Then .SelText = "/"
-            Case Else: KeyAscii = 0     ' Ignora os outros caracteres
-        End Select
-    End With
 End Sub
 Private Sub btnVencimento_Click()
     dtDatabase = IIf(txbVencimento.Text = Empty, Date, txbVencimento.Text)
@@ -402,9 +379,6 @@ Private Sub cbbSubcategoria_AfterUpdate()
             End If
         End If
     End If
-End Sub
-Private Sub txbObservacao_AfterUpdate()
-    oMovimentacao.Observacao = txbObservacao.Text
 End Sub
 Private Sub btnCancelar_Click()
     

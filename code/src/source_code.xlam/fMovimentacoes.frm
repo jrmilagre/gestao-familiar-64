@@ -204,7 +204,7 @@ Private Sub cbbFornecedor_AfterUpdate()
             If vbResposta = vbYes Then
                 oFornecedor.NomeFantasia = cbbFornecedor.Text
                 oFornecedor.Inclui
-                Call ComboBoxCarregarFornecedores
+                Call cbbFornecedorPopular
                 cbbFornecedor.Text = oFornecedor.NomeFantasia
             Else
                 cbbFornecedor.ListIndex = -1
@@ -717,12 +717,14 @@ Private Sub lstMovimentacoesPopular()
                 oConta.Carrega oMovimentacao.CarregaContaID(oTransferencia.MovimentacaoDeID)
                 oContaPara.Carrega oMovimentacao.CarregaContaID(oTransferencia.MovimentacaoParaID)
             
-                .List(.ListCount - 1, 2) = "<--Transferência-->"
+                
                 
                 If oMovimentacao.Valor < 0 Then
+                    .List(.ListCount - 1, 2) = "---Transferência-->"
                     .List(.ListCount - 1, 3) = "Foi para a conta: " & oContaPara.Conta
                 Else
-                    .List(.ListCount - 1, 3) = "Veio da conta : " & oContaPara.Conta
+                    .List(.ListCount - 1, 2) = "<--Transferência---"
+                    .List(.ListCount - 1, 3) = "Veio da conta : " & oConta.Conta
                 End If
 
             ' Se não for uma transferência entre contas...

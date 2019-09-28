@@ -1035,16 +1035,18 @@ End Sub
 Private Sub btnRegistrar_Click()
 
     Dim i As Integer
-    Dim arr() As Long
+'    Dim arr() As Long
     
     Set oMovimentacao = New cMovimentacao
 
     'Diz para formulário de registro de agendamento que o registro é oriundo de agendamento
     oMovimentacao.IsAgendamento = True
-    oMovimentacao.IsTransferencia = chbTransferencia.Value
+    
     
     ' Se a lista estiver com modo simples de seleção...
     If optSimples.Value = True Then
+        
+        oMovimentacao.IsTransferencia = chbTransferencia.Value
     
         ' ...e se houver um agendamento selecionado...
         If lblAgendamento.Caption <> Empty Then
@@ -1057,7 +1059,6 @@ Private Sub btnRegistrar_Click()
                     
                     ' Passa o ID do agendamento para o objeto
                     oMovimentacao.AgendamentoID = (CLng(lstPrincipal.List(i, 0)))
-                    
                     fRegistrar.Show
                     Call lstPrincipalPopular("vencimento")
                     
@@ -1085,34 +1086,23 @@ Private Sub btnRegistrar_Click()
         
     ' Se vários agendamentos estiverem selecionados
     ElseIf optMultiplo.Value = True Then
-    
-        ReDim arr(0)
-    
-        ' Laço para verificar quais agendamentos estão selecionados
-        For i = 1 To lstPrincipal.ListCount
-            
-            ' Se o agendamento estiver selecionado, armazena o número
-            ' do agendamento no array
-            If lstPrincipal.Selected(i - 1) = True Then
-                
-                If UBound(arr) = 0 And arr(UBound(arr)) = 0 Then
-                    arr(UBound(arr)) = (CLng(lstPrincipal.List(i - 1, 0)))
-                Else
-                    ReDim Preserve arr(UBound(arr) + 1)
-                    arr(UBound(arr)) = (CLng(lstPrincipal.List(i - 1, 0)))
-                End If
-                
+        
+        Dim n As Variant
+        
+        Set colAgendamentos = New Collection
+        
+        For i = 0 To lstPrincipal.ListCount - 1
+            If lstPrincipal.Selected(i) = True Then
+                colAgendamentos.Add lstPrincipal.List(i, 0)
             End If
-            
         Next i
         
-        For i = 0 To UBound(arr)
-            'oAgendamento.ID = arr(i)
-            oAgendamento.Carrega (arr(i))
+        For Each n In colAgendamentos
+            
+            oMovimentacao.AgendamentoID = CLng(n)
+            
             fRegistrar.Show
-            Call lstPrincipalPopular("vencimento")
-            'Debug.Print arr(i)
-        Next
+        Next n
         
         Call lstPrincipalPopular("vencimento")
         

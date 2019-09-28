@@ -28,6 +28,14 @@ Private Sub UserForm_Initialize()
     ' Se for uma MOVIMENTAÇÃO de origem de agendamento, então ...
     If oMovimentacao.IsAgendamento = True Then
     
+        oAgendamento.Carrega oMovimentacao.AgendamentoID
+        
+        If oAgendamento.Grupo = "T" Then
+            oMovimentacao.IsTransferencia = True
+        Else
+            oMovimentacao.IsTransferencia = False
+        End If
+        
         ' Se o registro for um AGENDAMENTO e também um RECEBIMENTO, DESPESA ou INVESTIMENTO, então ...
         If oMovimentacao.IsTransferencia = False Then
             
@@ -50,16 +58,15 @@ Private Sub UserForm_Initialize()
 '            End With
             
             ' Carrega detalhes necessários dos cadastros
-            oAgendamento.Carrega oMovimentacao.AgendamentoID
-            oConta.Carrega oAgendamento.ContaID 'oMovimentacao.ContaID
-            oSubcategoria.Carrega oAgendamento.SubcategoriaID
-            oCategoria.Carrega oSubcategoria.CategoriaID
-            oFornecedor.Carrega oAgendamento.FornecedorID 'oMovimentacao.FornecedorID
-            
             Call ComboBoxCarregar
             Call ComboBoxCarregarContas
             Call ComboBoxCarregarFornecedores
             
+            oConta.Carrega oAgendamento.ContaID 'oMovimentacao.ContaID
+            oSubcategoria.Carrega oAgendamento.SubcategoriaID
+            oCategoria.Carrega oSubcategoria.CategoriaID
+            oFornecedor.Carrega oAgendamento.FornecedorID 'oMovimentacao.FornecedorID
+    
             txbVencimento.Text = oAgendamento.Vencimento
             cbbContaDe.Text = oConta.Conta
             cbbFornecedor.Text = oFornecedor.NomeFantasia
@@ -78,30 +85,19 @@ Private Sub UserForm_Initialize()
         ' Se o AGENDAMENTO a ser registrado for uma TRANSFERÊNCIA ENTRE CONTAS, então ...
         Else
         
-            Set oConta = New cConta
-            Set oContaPara = New cContaPara
-            Set oFornecedor = New cFornecedor
-            Set oCategoria = New cCategoria
-            Set oSubcategoria = New cSubcategoria
-            'Set oMovimentacao = New cMovimentacao
-            Set oTransferencia = New cTransferencia
-        
             lblTitulo.Caption = "Registro do agendamento nº: " & Format(oAgendamento.ID, "00000000")
             
             chbTransferencia.Value = oMovimentacao.IsTransferencia
             chbTransferencia.Visible = True
             chbTransferencia.Enabled = False
             
-            oAgendamento.Carrega oAgendamento.ID
+            Call ComboBoxCarregarContas
+            
             oConta.Carrega oAgendamento.ContaID
             oContaPara.Carrega oAgendamento.ContaParaID
             
-            'Call ComboBoxCarregar
-            Call ComboBoxCarregarContas
-            'Call ComboBoxCarregarFornecedores
-            
-            'cbbContaDe.Text = oConta.Conta
-            'cbbContaPara.Text = oContaPara.Conta
+            cbbContaDe.Text = oConta.Conta
+            cbbContaPara.Text = oContaPara.Conta
             lblContaPara.Visible = True: cbbContaPara.Visible = True
             txbValor.Text = Format(IIf(oAgendamento.Grupo = "R", oAgendamento.Valor, oAgendamento.Valor * -1), "#,##0.00")
             txbVencimento.Text = oAgendamento.Vencimento
@@ -781,7 +777,7 @@ Private Sub ComboBoxCarregar()
             cbbCategoria.Text = oCategoria.Categoria
             
             ' Carrega o combobox Subcategoria
-            Set col = oSubcategoria.Listar("subcategoria", oSubcategoria.CategoriaID)
+            Set col = oSubcategoria.Listar("subcategoria", oAgendamento.SubcategoriaID)
     
             cbbSubcategoria.Clear
             

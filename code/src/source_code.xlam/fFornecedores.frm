@@ -342,6 +342,7 @@ Private Sub lstPrincipalPopular(OrderBy As String)
         .Enabled = True                     ' Habilita ListBox
         .ColumnCount = 3                    ' Determina número de colunas
         .ColumnWidths = "170 pt; 0pt; 180pt;"      ' Configura largura das colunas
+        .Font = "Consolas"
         
         Dim n As Variant
         

@@ -686,8 +686,10 @@ Private Sub lstMovimentacoesPopular()
     Dim col         As New Collection
     Dim curSaldo    As Currency
     
+    oConta.Carrega CLng(lstContas.List(lstContas.ListIndex, 1))
+    
     Set col = oMovimentacao.ListaMovimentacoes(oConta.ID)
-    curSaldo = oMovimentacao.SaldoAnteriorExtrato(oConta.ID)
+    curSaldo = oMovimentacao.SaldoAnteriorExtrato(oConta.ID) + oConta.SaldoInicial
     
     With lstRegistros
         .Clear                              ' Limpa ListBox

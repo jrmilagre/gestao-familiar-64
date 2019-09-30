@@ -230,6 +230,10 @@ Public Sub Inclui(IsTransferencia As Boolean, IsAgendamento As Boolean)
                     .Fields("agendamento_id").Value = oMovimentacao.AgendamentoID
                 End If
                 
+                If oAgendamento.Infinito = False Then
+                    .Fields("parcela").Value = oAgendamento.ParcelasQuitadas + 1
+                End If
+                
                 '
                 Select Case i
                     Case 1: oTransferencia.MovimentacaoDeID = Me.ID
@@ -412,14 +416,8 @@ Public Sub Exclui(Transferencia As Boolean, Valor As Currency, Agendamento As Bo
         If Transferencia = False Then
             
             ' Consulta SQL
-            sSQL = "SELECT * FROM tbl_movimentacoes WHERE id = " & Me.ID
-    
-            With rst
-                .Open Source:=sSQL, ActiveConnection:=cnn, CursorType:=adOpenDynamic, LockType:=adLockOptimistic
-                .Delete ' Deleta registro
-            End With
-            
-            Set rst = Nothing
+            sSQL = "DELETE FROM tbl_movimentacoes WHERE id = " & Me.ID
+            cnn.Execute sSQL
                 
         ' Se for TRANSFERÊNCIA ENTRE CONTAS, então ...
         ElseIf Transferencia = True Then
@@ -431,19 +429,16 @@ Public Sub Exclui(Transferencia As Boolean, Valor As Currency, Agendamento As Bo
             ' Laço para excluir as 2 movimentações relacionadas a transferência
             For i = 1 To 2
             
+                sSQL = "DELETE FROM tbl_movimentacoes WHERE tbl_movimentacoes.id = "
+            
                 Select Case i
                     Case 1
-                        sSQL = "SELECT * FROM tbl_movimentacoes WHERE tbl_movimentacoes.id = " & oTransferencia.MovimentacaoDeID
+                        sSQL = sSQL & oTransferencia.MovimentacaoDeID
                     Case 2
-                        sSQL = "SELECT * FROM tbl_movimentacoes WHERE tbl_movimentacoes.id = " & oTransferencia.MovimentacaoParaID
+                        sSQL = sSQL & oTransferencia.MovimentacaoParaID
                 End Select
                 
-                Set rst = New ADODB.Recordset
-                
-                With rst
-                    .Open Source:=sSQL, ActiveConnection:=cnn, CursorType:=adOpenDynamic, LockType:=adLockOptimistic
-                    .Delete ' Deleta registro
-                End With
+                cnn.Execute sSQL
                 
             Next i
             
@@ -452,6 +447,8 @@ Public Sub Exclui(Transferencia As Boolean, Valor As Currency, Agendamento As Bo
         End If
         
         Set rst = Nothing
+        
+        MsgBox "Exclusão realizada com sucesso!", vbInformation, "Exclusão"
     
     ' Se o registro for de origem de AGENDAMENTO, fará as tratativas para
     ' alterar ou estornar o agendamento
@@ -464,30 +461,24 @@ Public Sub Exclui(Transferencia As Boolean, Valor As Currency, Agendamento As Bo
         ' Se o agendamento for de parcela única, pergunta ao usuário se ele deseja
         ' recuperar o agendamento
         If oAgendamento.Recorrente = False Then
-            vbResposta = MsgBox("Esse registro é vinculado a um AGENDAMENTO de PARCELA ÚNICA." & _
-                         VBA.vbNewLine & _
-                         VBA.vbNewLine & _
-                         "Deseja recuperar o AGENDAMENTO?", vbYesNo, "Pergunta")
-                         
-            ' Se a resposta for SIM, estorna o agendamento
-            If vbResposta = vbYes Then
+        
+'            vbResposta = MsgBox("Esse registro é vinculado a um AGENDAMENTO de PARCELA ÚNICA." & _
+'                         VBA.vbNewLine & _
+'                         VBA.vbNewLine & _
+'                         "Deseja recuperar o AGENDAMENTO?", vbYesNo, "Pergunta")
+'
+'            ' Se a resposta for SIM, estorna o agendamento
+'            If vbResposta = vbYes Then
                 oAgendamento.Estorna Me.AgendamentoID, oAgendamento.Recorrente, oAgendamento.Infinito
-            End If
+'            End If
             
             ' Exclui as MOVIMENTAÇÕES
             ' Se for RECEBIMENTO, DESPESA ou INVESTIMENTO, então ...
             If Transferencia = False Then
             
                 ' Depois de fazer as tratativas com o agendamento, exclui a movimentação
-                Set rst = New ADODB.Recordset
-                
-                ' Consulta SQL
-                sSQL = "SELECT * FROM tbl_movimentacoes WHERE id = " & Me.ID
-        
-                With rst
-                    .Open Source:=sSQL, ActiveConnection:=cnn, CursorType:=adOpenDynamic, LockType:=adLockOptimistic
-                    .Delete ' Deleta registro
-                End With
+                sSQL = "DELETE FROM tbl_movimentacoes WHERE id = " & Me.ID
+                cnn.Execute sSQL
                 
             ' e se for TRANSFERÊNCIA ENTRE CONTAS, então ...
             Else
@@ -499,19 +490,16 @@ Public Sub Exclui(Transferencia As Boolean, Valor As Currency, Agendamento As Bo
                 ' Laço para excluir as 2 movimentações relacionadas a transferência
                 For i = 1 To 2
                 
+                    sSQL = "DELETE FROM tbl_movimentacoes WHERE tbl_movimentacoes.id = "
+                
                     Select Case i
                         Case 1
-                            sSQL = "SELECT * FROM tbl_movimentacoes WHERE tbl_movimentacoes.id = " & oTransferencia.MovimentacaoDeID
+                            sSQL = sSQL & oTransferencia.MovimentacaoDeID
                         Case 2
-                            sSQL = "SELECT * FROM tbl_movimentacoes WHERE tbl_movimentacoes.id = " & oTransferencia.MovimentacaoParaID
+                            sSQL = sSQL & oTransferencia.MovimentacaoParaID
                     End Select
                     
-                    Set rst = New ADODB.Recordset
-                    
-                    With rst
-                        .Open Source:=sSQL, ActiveConnection:=cnn, CursorType:=adOpenDynamic, LockType:=adLockOptimistic
-                        .Delete ' Deleta registro
-                    End With
+                    cnn.Execute sSQL
                     
                 Next i
                 
@@ -521,12 +509,14 @@ Public Sub Exclui(Transferencia As Boolean, Valor As Currency, Agendamento As Bo
             
             Set rst = Nothing
             
+            MsgBox "Exclusão realizada com sucesso!", vbInformation, "Exclusão"
+            
         ' Se o agendamento for recorrente...
         ElseIf oAgendamento.Recorrente = True Then
             
             ' Se o agendamento for recorrente e for infinito, regride a data em uma unidade
             ' de acordo com a periodicidade e o intervalo do agendamento
-            'If oAgendamento.Infinito = True Then
+            If oAgendamento.Infinito = True Then
             
                 vbResposta = MsgBox("Esse registro é vinculado ao Agendamento nº: " & Format(Me.AgendamentoID, "00000000") & "." & _
                              VBA.vbNewLine & _
@@ -538,17 +528,11 @@ Public Sub Exclui(Transferencia As Boolean, Valor As Currency, Agendamento As Bo
                 End If
                 
                 ' Depois de fazer as tratativas com o agendamento, exclui o registro
-                Set rst = New ADODB.Recordset
-                
                 If Transferencia = False Then
                 
                     ' Consulta SQL
-                    sSQL = "SELECT * FROM tbl_movimentacoes WHERE id = " & Me.ID
-        
-                    With rst
-                        .Open Source:=sSQL, ActiveConnection:=cnn, CursorType:=adOpenDynamic, LockType:=adLockOptimistic
-                        .Delete ' Deleta registro
-                    End With
+                    sSQL = "DELETE FROM tbl_movimentacoes WHERE id = " & Me.ID
+                    cnn.Execute sSQL
                 
                 ' Se não for um agendamento, e, se for transferência e o valor for menor que zero
                 ElseIf Transferencia = True Then
@@ -560,55 +544,73 @@ Public Sub Exclui(Transferencia As Boolean, Valor As Currency, Agendamento As Bo
                     ' Laço para excluir as 2 movimentações relacionadas a transferência
                     For i = 1 To 2
                     
+                        sSQL = "DELETE FROM tbl_movimentacoes WHERE tbl_movimentacoes.id = "
+                        
                         Select Case i
                             Case 1
-                                sSQL = "SELECT * FROM tbl_movimentacoes WHERE tbl_movimentacoes.id = " & oTransferencia.MovimentacaoDeID
+                                sSQL = sSQL & oTransferencia.MovimentacaoDeID
                             Case 2
-                                sSQL = "SELECT * FROM tbl_movimentacoes WHERE tbl_movimentacoes.id = " & oTransferencia.MovimentacaoParaID
+                                sSQL = sSQL & oTransferencia.MovimentacaoParaID
                         End Select
                         
-                        Set rst = New ADODB.Recordset
-                        
-                        With rst
-                            .Open Source:=sSQL, ActiveConnection:=cnn, CursorType:=adOpenDynamic, LockType:=adLockOptimistic
-                            .Delete ' Deleta registro
-                        End With
+                        cnn.Execute sSQL
                         
                     Next i
                     
                     oTransferencia.Exclui Me.TransferenciaID
+                    
                 End If
                 
                 Set rst = Nothing
                 
-            ' Se o agendamento for recorrente e tiver término
-            'Else
-                ' Verifica se é a parcela mais recente registrada
-'                If Me.Parcela = oAgendamento.ParcelasQuitadas Then
-'
-'                    oAgendamento.Estorna Me.AgendamentoID, oAgendamento.Recorrente, oAgendamento.Infinito
-'
-'                    ' Depois de fazer as tratativas com o agendamento, exclui o registro
-'                    Set rst = New ADODB.Recordset
-'
-'                    ' Consulta SQL
-'                    sSQL = "SELECT * FROM tbl_movimentacoes WHERE id = " & Me.ID
-'
-'                    With rst
-'                        .Open Source:=sSQL, ActiveConnection:=cnn, CursorType:=adOpenDynamic, LockType:=adLockOptimistic
-'                        .Delete ' Deleta registro
-'                    End With
-'
-'                    Set rst = Nothing
-'                Else
-'                    MsgBox "O registro não corresponde ao último registro do agendamento." & vbNewLine & _
-'                    "Não posso excluir." & vbNewLine & _
-'                    "Localize o última parcela registrada do agendamento para fazer a exclusão", vbInformation
-'                End If
-            'End If
+                MsgBox "Exclusão realizada com sucesso!", vbInformation, "Exclusão"
                 
+            ' Se o agendamento for recorrente e tiver término
+            ElseIf oAgendamento.Infinito = False Then
+                ' Verifica se é a parcela mais recente registrada
+                If Me.Parcela = oAgendamento.ParcelasQuitadas Then
+
+                    oAgendamento.Estorna Me.AgendamentoID, oAgendamento.Recorrente, oAgendamento.Infinito
+
+                    ' Depois de fazer as tratativas com o agendamento, exclui o registro
+                    sSQL = "DELETE FROM tbl_movimentacoes WHERE id = " & Me.ID
+                    cnn.Execute sSQL
+                    
+                    If Transferencia = False Then
+                        sSQL = "DELETE FROM tbl_movimentacoes WHERE id = " & Me.ID
+                        cnn.Execute sSQL
+                    Else
+                        Set oTransferencia = New cTransferencia
+                        oTransferencia.Carrega Me.TransferenciaID
+                        ' Laço para excluir as 2 movimentações relacionadas a transferência
+                        For i = 1 To 2
+                        
+                            sSQL = "DELETE FROM tbl_movimentacoes WHERE tbl_movimentacoes.id = "
+                            
+                            Select Case i
+                                Case 1
+                                    sSQL = sSQL & oTransferencia.MovimentacaoDeID
+                                Case 2
+                                    sSQL = sSQL & oTransferencia.MovimentacaoParaID
+                            End Select
+                            
+                            cnn.Execute sSQL
+                            
+                        Next i
+                        
+                        oTransferencia.Exclui Me.TransferenciaID
+                    End If
+                    
+                    MsgBox "Exclusão realizada com sucesso!", vbInformation, "Exclusão"
+                Else
+                
+                    MsgBox "O registro não corresponde ao último registro do agendamento." & vbNewLine & _
+                    "Não posso excluir." & vbNewLine & _
+                    "Localize o última parcela registrada do agendamento para fazer a exclusão", vbInformation
+                    
+                End If
+            End If
         End If
-    
     End If
 
 End Sub

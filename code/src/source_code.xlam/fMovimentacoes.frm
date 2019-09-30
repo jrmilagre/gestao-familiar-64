@@ -27,6 +27,7 @@ Private colControles    As New Collection
 Private sDecisao        As String
 Private iDias           As Integer
 
+
 Private Sub UserForm_Initialize()
     
     Call lstContasPopular
@@ -444,7 +445,6 @@ Private Sub btnConfirmar_Click()
             vbResposta = MsgBox("Deseja confirmar a " & sDecisao & " do registro?", vbYesNo, sDecisao & " do registro")
             If vbResposta = VBA.vbYes Then
                 oMovimentacao.Exclui IIf(oMovimentacao.Grupo = "T", True, False), oMovimentacao.Valor, IIf(oMovimentacao.Origem = "Agendamento", True, False)
-                MsgBox sDecisao & " realizada com sucesso!", vbInformation, sDecisao
             End If
 
         End If
@@ -861,7 +861,7 @@ Private Sub Campos(Acao As String)
         cbbGrupo.Enabled = True: lblGrupo.Enabled = True
         cbbCategoria.Enabled = True: lblCategoria.Enabled = True
         cbbSubcategoria.Enabled = True: lblSubcategoria.Enabled = True
-        txbValor.Enabled = True: lblValor.Enabled = True
+        txbValor.Enabled = True: lblValor.Enabled = True: btnValor.Enabled = True
         txbLiquidado.Enabled = True: lblLiquidado.Enabled = True: btnLiquidado.Enabled = True
         txbObservacao.Enabled = True: lblObservacao.Enabled = True
     ElseIf Acao = "Desabilitar" Then
@@ -872,7 +872,7 @@ Private Sub Campos(Acao As String)
         cbbGrupo.Enabled = False: lblGrupo.Enabled = False
         cbbCategoria.Enabled = False: lblCategoria.Enabled = False
         cbbSubcategoria.Enabled = False: lblSubcategoria.Enabled = False
-        txbValor.Enabled = False: lblValor.Enabled = False
+        txbValor.Enabled = False: lblValor.Enabled = False: btnValor.Enabled = False
         txbLiquidado.Enabled = False: lblLiquidado.Enabled = False: btnLiquidado.Enabled = False
         txbObservacao.Enabled = False: lblObservacao.Enabled = False
     End If

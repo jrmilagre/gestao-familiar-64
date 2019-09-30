@@ -51,6 +51,28 @@ Private Sub UserForm_Initialize()
     cbbContaPara.Visible = False
     
 End Sub
+Private Sub cbbContaPara_AfterUpdate()
+
+    Dim vbResposta  As VbMsgBoxResult
+    Dim sConta      As String
+    
+    If cbbContaPara.ListIndex = -1 Then
+        If cbbContaPara.Text <> "" Then
+            vbResposta = MsgBox("Esta Conta não existe. Deseja cadastrá-la?", vbQuestion + vbYesNo)
+            If vbResposta = vbYes Then
+                sConta = cbbContaPara.Text
+                oConta.Conta = cbbContaPara.Text
+                oConta.SaldoInicial = 0
+                oConta.Inclui
+                Call cbbContasPopular
+                cbbContaPara.Text = sConta
+            Else
+                cbbContaPara.ListIndex = -1
+            End If
+        End If
+    End If
+    
+End Sub
 Private Sub btnValor_Click()
     ccurVisor = IIf(txbValor.Text = "", 0, CCur(txbValor.Text))
     txbValor.Text = Format(GetCalculadora, "#,##0.00")
@@ -245,22 +267,25 @@ End Sub
 
 Private Sub cbbContaDe_AfterUpdate()
     
-    Dim vbResposta As VbMsgBoxResult
+    Dim vbResposta  As VbMsgBoxResult
+    Dim sConta      As String
     
     If cbbContaDe.ListIndex = -1 Then
         If cbbContaDe.Text <> "" Then
             vbResposta = MsgBox("Esta Conta não existe. Deseja cadastrá-la?", vbQuestion + vbYesNo)
             If vbResposta = vbYes Then
+                sConta = cbbContaDe.Text
                 oConta.Conta = cbbContaDe.Text
                 oConta.SaldoInicial = 0
                 oConta.Inclui
                 Call cbbContasPopular
-                oAgendamento.ContaID = CLng(cbbContaDe.List(cbbContaDe.ListIndex, 1))
+                cbbContaDe.Text = sConta
             Else
                 cbbContaDe.ListIndex = -1
             End If
         End If
     End If
+    
 End Sub
 Private Sub cbbContaDe_KeyDown(ByVal KeyCode As MSForms.ReturnInteger, ByVal Shift As Integer)
     If KeyCode = 13 Then cbbFornecedor.SetFocus
@@ -581,7 +606,7 @@ Private Sub btnConfirmar_Click()
         ElseIf sDecisao = "Exclusão" Then
             vbResposta = MsgBox("Deseja confirmar a " & sDecisao & " do agendamento [" & Format(lblAgendamento.Caption, "00000000") & "] ?", vbYesNo, sDecisao & " do registro")
             If vbResposta = VBA.vbYes Then
-                'oAgendamento.Exclui
+                oAgendamento.Exclui
             End If
 
         End If

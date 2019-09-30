@@ -227,6 +227,7 @@ Private Sub PosDecisaoTomada(Decisao As String)
     
     If Decisao <> "Exclusão" Then
         Call Campos("Habilitar")
+        txbSaldoInicial.Text = "0,00"
         txbConta.SetFocus
     End If
     

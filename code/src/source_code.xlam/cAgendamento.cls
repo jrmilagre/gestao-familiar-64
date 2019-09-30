@@ -198,10 +198,9 @@ Public Sub Altera(IsTransferencia As Boolean)
     ' Destrói objeto Recordset
     Set rst = Nothing
 End Sub
-Public Sub Exclui(IsTransferencia As Boolean)
+Public Sub Exclui()
         
     sSQL = "UPDATE " & tbl & " SET deletado = True WHERE id = " & Me.ID
-    
     cnn.Execute sSQL
     
 End Sub

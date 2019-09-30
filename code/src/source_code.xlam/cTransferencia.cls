@@ -135,22 +135,7 @@ Public Sub Altera(ID As Long, Data As Date, Valor As Currency)
 End Sub
 Public Sub Exclui(ID As Long)
     
-    Set rst = New ADODB.Recordset
-    
-    ' Comando SQL
-    sSQL = "SELECT * FROM tbl_transferencias WHERE id = " & ID
-    
-    'Armazena na variável o comando que fará a consulta SQL no BD Access
-    With rst
-        .Open Source:=sSQL, _
-              ActiveConnection:=cnn, _
-              CursorType:=adOpenDynamic, _
-              LockType:=adLockOptimistic
-        
-        ' Grava alterações
-        .Delete
-    End With
-    
-    Set rst = Nothing
+    sSQL = "DELETE FROM tbl_transferencias WHERE id = " & ID
+    cnn.Execute sSQL
     
 End Sub

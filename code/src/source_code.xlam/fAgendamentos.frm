@@ -51,6 +51,10 @@ Private Sub UserForm_Initialize()
     cbbContaPara.Visible = False
     
 End Sub
+Private Sub btnValor_Click()
+    ccurVisor = IIf(txbValor.Text = "", 0, CCur(txbValor.Text))
+    txbValor.Text = Format(GetCalculadora, "#,##0.00")
+End Sub
 Private Sub EventosCampos(Tabela As String)
 
     ' Declara variáveis

@@ -26,6 +26,7 @@ Private oAgendamento    As New cAgendamento
 Private colControles    As New Collection
 Private sDecisao        As String
 Private iDias           As Integer
+
 Private Sub UserForm_Initialize()
     
     Call lstContasPopular
@@ -50,6 +51,10 @@ Private Sub UserForm_Initialize()
     
     btnIncluir.SetFocus
 
+End Sub
+Private Sub btnValor_Click()
+    ccurVisor = IIf(txbValor.Text = "", 0, CCur(txbValor.Text))
+    txbValor.Text = Format(GetCalculadora, "#,##0.00")
 End Sub
 Private Sub EventosCampos(Tabela As String)
 
@@ -414,7 +419,7 @@ Private Sub btnExcluir_Click()
     btnAlterar.Visible = False
     btnExcluir.Visible = False
     
-    lvRegistros.Enabled = False
+    lstRegistros.Enabled = False
     
     lstContas.Enabled = False
 

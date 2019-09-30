@@ -113,6 +113,9 @@ Private Sub cGeneric_KeyDown(ByVal KeyCode As MSForms.ReturnInteger, ByVal Shift
                 cGeneric.Text = Format(cGeneric.Text, "#,##0.00")
                 cGeneric.TextAlign = fmTextAlignRight
                 SendKeys "{TAB}"   ' Emula o TAB
+            Case 115
+                ccurVisor = IIf(cGeneric.Text = "", 0, CCur(cGeneric.Text))
+                cGeneric.Text = Format(GetCalculadora, "#,##0.00")
         End Select
     ElseIf This.FieldType = 7 Then
         ' Se a tecla {F4} for pressionada, abre o formulário calendário

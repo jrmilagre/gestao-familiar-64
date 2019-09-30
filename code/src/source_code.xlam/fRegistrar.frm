@@ -83,8 +83,6 @@ Private Sub UserForm_Initialize()
         
             lblContaPara.Visible = False: cbbContaPara.Visible = False
             
-            
-        
         ' Se o AGENDAMENTO a ser registrado for uma TRANSFERÊNCIA ENTRE CONTAS, então ...
         Else
         
@@ -113,6 +111,7 @@ Private Sub UserForm_Initialize()
     
     ' Se for um REGISTRO DIRETO, então
     Else
+        lblTitulo.Caption = "Registro direto"
         
         chbTransferencia.Visible = True
         
@@ -128,6 +127,10 @@ Private Sub UserForm_Initialize()
 
     End If
     
+End Sub
+Private Sub btnValor_Click()
+    ccurVisor = IIf(txbValor.Text = "", 0, CCur(txbValor.Text))
+    txbValor.Text = Format(GetCalculadora, "#,##0.00")
 End Sub
 Private Sub EventosCampos(Tabela As String)
 
@@ -253,22 +256,24 @@ End Sub
 Private Sub cbbFornecedor_KeyDown(ByVal KeyCode As MSForms.ReturnInteger, ByVal Shift As Integer)
     ' Ao pressionar enter, foca no campo Valor
     If KeyCode = 13 Then
-        txbValor.SetFocus
+        cbbGrupo.SetFocus
     End If
 End Sub
 Private Sub cbbFornecedor_AfterUpdate()
     
-    Dim vbResposta As VbMsgBoxResult
+    Dim vbResposta  As VbMsgBoxResult
+    Dim sFornecedor As String
     
     If cbbFornecedor.ListIndex > -1 Then
         oMovimentacao.FornecedorID = CLng(cbbFornecedor.List(cbbFornecedor.ListIndex, 1))
     Else
         vbResposta = MsgBox("Este Fornecedor não existe, deseja cadastrá-lo?", vbQuestion + vbYesNo)
         If vbResposta = vbYes Then
-            oFornecedor.NomeFantasia = cbbFornecedor.Text
+            sFornecedor = cbbFornecedor.Text
+            oFornecedor.NomeFantasia = sFornecedor
             oFornecedor.Inclui
             Call ComboBoxCarregarFornecedores
-            cbbFornecedor.Text = oFornecedor.NomeFantasia
+            cbbFornecedor.Text = sFornecedor
         Else
             cbbFornecedor.ListIndex = -1
         End If
@@ -285,7 +290,7 @@ Private Sub txbVencimento_AfterUpdate()
     End If
 End Sub
 Private Sub btnVencimento_Click()
-    dtDatabase = IIf(txbVencimento.Text = Empty, Date, txbVencimento.Text)
+    dtDate = IIf(txbVencimento.Text = Empty, Date, txbVencimento.Text)
     txbVencimento.Text = GetCalendario
 End Sub
 Private Sub cbbGrupo_KeyDown(ByVal KeyCode As MSForms.ReturnInteger, ByVal Shift As Integer)
@@ -787,6 +792,8 @@ Private Sub ComboBoxCarregarFornecedores()
     Dim n   As Variant
 
     Set col = oFornecedor.Listar("nome_fantasia")
+    
+    cbbFornecedor.Clear
     
     For Each n In col
         

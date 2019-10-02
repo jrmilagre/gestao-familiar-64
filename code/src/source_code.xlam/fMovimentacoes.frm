@@ -44,7 +44,7 @@ Private Sub UserForm_Initialize()
     lblContaPara.Visible = False
     cbbContaPara.Visible = False
     
-    iDias = 90
+    oMovimentacao.DiasExtrato = 90
     btn7dias.Enabled = False
     btn15dias.Enabled = False
     btn30dias.Enabled = False
@@ -115,6 +115,8 @@ Private Sub lstContas_Change()
     btn90dias.Enabled = True
 End Sub
 Private Sub lstRegistros_Change()
+
+    
     If lstRegistros.ListIndex > 0 Then
         oMovimentacao.Carrega CLng(lstRegistros.List(lstRegistros.ListIndex, 0))
         oConta.Carrega oMovimentacao.ContaID
@@ -576,6 +578,9 @@ Private Function Valida() As Boolean
 End Function
 Private Sub InformacoesCarregar()
 
+    Dim sCategoria      As String
+    Dim sSubcategoria   As String
+
     cbbContaDe.Text = oConta.Conta
     cbbFornecedor.Text = oFornecedor.NomeFantasia
     txbLiquidado.Text = oMovimentacao.Liquidado
@@ -601,13 +606,14 @@ Private Sub InformacoesCarregar()
             Case "I": cbbGrupo.ListIndex = 2
         End Select
         
-        'cbbGrupo.ListIndex = IIf(oMovimentacao.Grupo = "D", 1, 0)
+        sCategoria = oCategoria.Categoria
+        sSubcategoria = oSubcategoria.Subcategoria
         
         Call cbbGrupo_AfterUpdate
-        cbbCategoria.Text = oCategoria.Categoria
+        cbbCategoria.Text = sCategoria
         Call cbbCategoria_AfterUpdate
         lblContaDe.Caption = "Conta"
-        cbbSubcategoria.Text = oSubcategoria.Subcategoria
+        cbbSubcategoria.Text = sSubcategoria
         lblFornecedor.Visible = True: cbbFornecedor.Visible = True
         lblContaPara.Visible = False: cbbContaPara.Visible = False
         lblGrupo.Visible = True: cbbGrupo.Visible = True
@@ -727,6 +733,8 @@ Private Sub lstMovimentacoesPopular()
                 .List(.ListCount - 1, 6) = ""
             End If
         Next n
+    
+        .ListIndex = lstRegistros.ListCount - 1
     End With
     
 End Sub

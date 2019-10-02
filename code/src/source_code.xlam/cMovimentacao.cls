@@ -222,19 +222,19 @@ Public Sub Inclui(IsTransferencia As Boolean, IsAgendamento As Boolean)
                 .Fields("grupo").Value = "T"
                 .Fields("liquidado").Value = Me.Liquidado
                 .Fields("valor").Value = IIf(i = 1, Me.Valor * -1, Me.Valor)
-                .Fields("origem").Value = IIf(IsAgendamento = True, "Agendamento", "Registro direto")
+                .Fields("origem").Value = IIf(IsAgendamento = True, "Agendamento", Me.Origem)
                 .Fields("observacao").Value = Me.Observacao
                 .Fields("transferencia_id").Value = oTransferencia.ID
                 
                 If IsAgendamento = True Then
                     .Fields("agendamento_id").Value = oMovimentacao.AgendamentoID
+                    
+                    If oAgendamento.Infinito = False Then
+                        .Fields("parcela").Value = oAgendamento.ParcelasQuitadas + 1
+                    End If
+                    
                 End If
                 
-                If oAgendamento.Infinito = False Then
-                    .Fields("parcela").Value = oAgendamento.ParcelasQuitadas + 1
-                End If
-                
-                '
                 Select Case i
                     Case 1: oTransferencia.MovimentacaoDeID = Me.ID
                     Case 2: oTransferencia.MovimentacaoParaID = Me.ID
@@ -304,7 +304,7 @@ Public Sub Inclui(IsTransferencia As Boolean, IsAgendamento As Boolean)
             ' Se for um REGISTRO DIRETO, então ...
             Else
                 .Fields("observacao").Value = Me.Observacao
-                .Fields("origem").Value = "Registro direto"
+                .Fields("origem").Value = Me.Origem
                 If ((Me.Grupo = "D" Or Me.Grupo = "I") And Me.Valor > 0) Or (Me.Grupo = "R" And Me.Valor < 0) Then
                     .Fields("valor").Value = Me.Valor * -1
                 ElseIf ((Me.Grupo = "D" Or Me.Grupo = "I") And Me.Valor < 0) Or (Me.Grupo = "R" And Me.Valor > 0) Then

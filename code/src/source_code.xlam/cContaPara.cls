@@ -77,6 +77,7 @@ Public Sub Inclui()
         Me.ID = .Fields("id").Value
         .Fields("conta").Value = Me.Conta
         .Fields("saldo_inicial").Value = Me.SaldoInicial
+        .Fields("data_cadastro").Value = Now
         
         .Update
     End With

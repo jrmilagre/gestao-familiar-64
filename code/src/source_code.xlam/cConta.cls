@@ -86,7 +86,7 @@ Public Sub Inclui()
         
         Me.ID = .Fields("id").Value
         .Fields("conta").Value = Me.Conta
-        .Fields("saldo_inicial").Value = Me.SaldoInicial
+        .Fields("saldo_inicial").Value = IIf(IsNull(Me.SaldoInicial), 0, Me.SaldoInicial)
         .Fields("data_cadastro").Value = Now
         
         .Update
@@ -153,4 +153,24 @@ Public Function Listar(OrderBy As String) As Collection
     Set Listar = col
 
 End Function
+Public Function Existe(Conta As String) As Boolean
 
+    Existe = False
+    
+    ' Comando SQL
+    sSQL = "SELECT * FROM tbl_contas WHERE conta = '" & Conta & "'"
+    
+    ' Atribui resultado da consulta SQL ao recordset
+    Set rst = cnn.Execute(sSQL)
+    
+    ' (EOF = True) = Fornecedor não existe
+    ' (EOF = False) = Fornecedor existe
+    If rst.EOF = False Then
+        Me.ID = rst.Fields("id").Value
+        Existe = True
+    End If
+    
+    ' Destrói Recordset
+    Set rst = Nothing
+        
+End Function

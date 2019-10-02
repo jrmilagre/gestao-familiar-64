@@ -69,7 +69,7 @@ Sub ActionDyMenuImportacoes(control As IRibbonControl)
 '   Executed when Sheet1 is active
     If Conecta() = True Then
         Select Case control.ID
-            'Case "bTransConta": f_import01.Show
+            Case "bTransConta": fImportaTransacoesM99.Show
             'Case "bSaldos": f_import02.Show
             'Case "bBradescoCC": f_import03.Show
             'Case "bSantanderFatura": Call f_import04.Show

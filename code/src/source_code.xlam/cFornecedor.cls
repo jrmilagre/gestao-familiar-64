@@ -198,3 +198,26 @@ Public Function Listar(OrderBy As String) As Collection
     Set Listar = col
 
 End Function
+Public Function Existe(Fornecedor As String) As Boolean
+
+    Existe = False
+    
+    ' Comando SQL
+    sSQL = "SELECT * FROM tbl_fornecedores WHERE nome_fantasia = '" & Replace(Fornecedor, "'", "`") & "'"
+    'sSQL = "SELECT tbl_fornecedores.nome_fantasia FROM tbl_fornecedores WHERE "
+    'sSQL = sSQL & "(((tbl_fornecedores.nome_fantasia)=" & Chr(34) & Fornecedor & Chr(34) & "))"
+
+    ' Atribui resultado da consulta SQL ao recordset
+    Set rst = cnn.Execute(sSQL)
+    
+    ' (EOF = True) = Fornecedor não existe
+    ' (EOF = False) = Fornecedor existe
+    If rst.EOF = False Then
+        Me.ID = rst.Fields("id").Value
+        Existe = True
+    End If
+    
+    ' Destrói Recordset
+    Set rst = Nothing
+        
+End Function

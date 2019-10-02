@@ -75,6 +75,8 @@ Private Sub lstCategorias_Change()
         btnCatAltera.Enabled = True
         btnCatExclui.Enabled = True
         btnSubInclui.Enabled = True
+        btnSubAltera.Enabled = False
+        btnSubExclui.Enabled = False
         
         txbSubcategoria.Text = ""
     Else
@@ -327,7 +329,7 @@ End Sub
 Private Sub lstSubcategorias_Change()
 
     If lstSubcategorias.ListIndex > -1 Then
-        txbSubcategoria.Text = oSubcategoria.Subcategoria
+        txbSubcategoria.Text = lstSubcategorias.List(lstSubcategorias.ListIndex, 0)
     End If
     
     btnSubInclui.Enabled = True

@@ -26,7 +26,8 @@ Private oAgendamento    As New cAgendamento
 Private colControles    As New Collection
 Private sDecisao        As String
 Private iDias           As Integer
-
+Private myRst           As ADODB.Recordset
+Private bSelectConta    As Boolean
 
 Private Sub UserForm_Initialize()
     
@@ -44,14 +45,67 @@ Private Sub UserForm_Initialize()
     lblContaPara.Visible = False
     cbbContaPara.Visible = False
     
-    oMovimentacao.DiasExtrato = 90
-    btn7dias.Enabled = False
-    btn15dias.Enabled = False
-    btn30dias.Enabled = False
-    btn90dias.Enabled = False
+    btnPaginaInicial.Enabled = False
+    btnPaginaAnterior.Enabled = False
+    btnPaginaSeguinte.Enabled = False
+    btnPaginaFinal.Enabled = False
+    lblPaginaInicial.Enabled = False
+    scrPagina.Enabled = False
     
     btnIncluir.SetFocus
 
+End Sub
+Private Sub btnPaginaFinal_Click()
+    If myRst.AbsolutePage < myRst.PageCount Then
+        myRst.AbsolutePage = myRst.PageCount
+        Call lstMovimentacoesPopular(myRst.AbsolutePage)
+    End If
+End Sub
+Private Sub scrPagina_Change()
+    
+    myRst.AbsolutePage = scrPagina.Value
+    
+    If bSelectConta = False Then
+        Call lstMovimentacoesPopular(scrPagina.Value)
+    End If
+    
+End Sub
+Private Sub btnPaginaSeguinte_Click()
+
+    Dim lPaginaAtual As Long
+    
+    lPaginaAtual = CLng(lblPaginaAtual.Caption)
+    
+    If lPaginaAtual < myRst.PageCount Then
+        myRst.AbsolutePage = lPaginaAtual + 1
+        Call lstMovimentacoesPopular(lPaginaAtual + 1)
+    End If
+
+End Sub
+Private Sub btnPaginaAnterior_Click()
+
+    Dim lPaginaAtual As Long
+    
+    lPaginaAtual = CLng(lblPaginaAtual.Caption)
+    
+    If lPaginaAtual > 2 Then
+        myRst.AbsolutePage = lPaginaAtual - 1
+        Call lstMovimentacoesPopular(lPaginaAtual - 1)
+    Else
+        If myRst.AbsolutePage = 1 Then
+            Exit Sub
+        Else
+            myRst.AbsolutePage = 1
+            Call lstMovimentacoesPopular(1)
+        End If
+    End If
+    
+End Sub
+Private Sub btnPaginaInicial_Click()
+    If myRst.AbsolutePage <> 1 Then
+        myRst.AbsolutePage = 1
+        Call lstMovimentacoesPopular(1)
+    End If
 End Sub
 Private Sub btnValor_Click()
     ccurVisor = IIf(txbValor.Text = "", 0, CCur(txbValor.Text))
@@ -77,47 +131,56 @@ Private Sub EventosCampos(Tabela As String)
     Next
 
 End Sub
-
-Private Sub btn7dias_Click()
-    oMovimentacao.DiasExtrato = 7
-    Call lstMovimentacoesPopular
-End Sub
-Private Sub btn15dias_Click()
-    oMovimentacao.DiasExtrato = 15
-    Call lstMovimentacoesPopular
-End Sub
-Private Sub btn30dias_Click()
-    oMovimentacao.DiasExtrato = 30
-    Call lstMovimentacoesPopular
-End Sub
-Private Sub btn90dias_Click()
-    oMovimentacao.DiasExtrato = 90
-    Call lstMovimentacoesPopular
-End Sub
 Private Sub btnLiquidado_Click()
     dtDate = IIf(txbLiquidado.Text = Empty, Date, txbLiquidado.Text)
     txbLiquidado.Text = GetCalendario
 End Sub
 Private Sub lstContas_Change()
+
+    bSelectConta = True
+    
+    Dim lConta  As Long
+    Dim lPagina As Long
+    
+    lConta = CLng(lstContas.List(lstContas.ListIndex, 1))
+    
     If lstContas.ListIndex > -1 Then
+    
         lstRegistros.ListIndex = -1
-        oConta.Carrega (CLng(lstContas.List(lstContas.ListIndex, 1)))
+        oConta.Carrega lConta
+    
+        Set myRst = New ADODB.Recordset
+        Set myRst = oMovimentacao.RetornaMovimentacoes(lConta)
         
-        Call lstMovimentacoesPopular
+        With scrPagina
+            .Min = 1
+            .Max = myRst.PageCount
+        End With
+        
+        myRst.AbsolutePage = myRst.PageCount
+        
+        scrPagina.Value = myRst.AbsolutePage
+        
+        Call lstMovimentacoesPopular(scrPagina.Value)
+        
         Call Campos("Limpar")
         btnAlterar.Enabled = False
         btnExcluir.Enabled = False
     End If
     
-    btn7dias.Enabled = True
-    btn15dias.Enabled = True
-    btn30dias.Enabled = True
-    btn90dias.Enabled = True
+    ' Bloqueia botões de navegação
+    btnPaginaInicial.Enabled = True
+    btnPaginaAnterior.Enabled = True
+    btnPaginaSeguinte.Enabled = True
+    btnPaginaFinal.Enabled = True
+    lblPaginaInicial.Enabled = True
+    scrPagina.Enabled = True
+    
+    bSelectConta = False
 End Sub
 Private Sub lstRegistros_Change()
 
-    
-    If lstRegistros.ListIndex > 0 Then
+    If lstRegistros.ListIndex > -1 Then
         oMovimentacao.Carrega CLng(lstRegistros.List(lstRegistros.ListIndex, 0))
         oConta.Carrega oMovimentacao.ContaID
         
@@ -651,93 +714,108 @@ Private Sub lstContasPopular()
     End With
     
 End Sub
-Private Sub lstMovimentacoesPopular()
+Private Sub lstMovimentacoesPopular(Pagina As Long)
 
     Dim col         As New Collection
     Dim curSaldo    As Currency
-    
+    Dim lCount      As Long
+    Dim iItems      As Integer
+    Dim lPosicao    As Long
+   
     oConta.Carrega CLng(lstContas.List(lstContas.ListIndex, 1))
-    
-    Set col = oMovimentacao.ListaMovimentacoes(oConta.ID)
-    curSaldo = oMovimentacao.SaldoAnteriorExtrato(oConta.ID) + oConta.SaldoInicial
+    curSaldo = oConta.SaldoInicial
     
     With lstRegistros
         .Clear                              ' Limpa ListBox
         .Enabled = True                     ' Habilita ListBox
         .ColumnCount = 7   ' Determina número de colunas
-        .ColumnWidths = "0pt; 55pt; 120pt; 220pt; 75pt; 90pt; 55pt"   'Configura largura das colunas
+        .ColumnWidths = "0pt; 55pt; 120pt; 220pt; 65pt; 65pt; 90pt"   'Configura largura das colunas
         .Font = "Consolas"
+
+        lCount = 1
         
-        .AddItem
-        .List(.ListCount - 1, 3) = "Saldo anterior"
-        .List(.ListCount - 1, 5) = Space(12 - Len(Format(curSaldo, "#,##0.00"))) & Format(curSaldo, "#,##0.00")
+        lPosicao = myRst.AbsolutePosition
+        curSaldo = curSaldo + CalculaAcumulado(lPosicao)
+        myRst.AbsolutePosition = lPosicao
         
-        Dim n As Variant
-        
-        For Each n In col
-        
-            oMovimentacao.Carrega CLng(n)
-            
+        While Not myRst.EOF = True And lCount <= myRst.PageSize
         
             .AddItem
-            .List(.ListCount - 1, 0) = oMovimentacao.ID
-            .List(.ListCount - 1, 1) = oMovimentacao.Liquidado
-        
-            If oMovimentacao.Grupo = "T" Then
+            .List(.ListCount - 1, 0) = myRst.Fields("id").Value
+            .List(.ListCount - 1, 1) = myRst.Fields("liquidado").Value
             
-                oTransferencia.Carrega oMovimentacao.TransferenciaID
+            If myRst.Fields("grupo").Value = "T" Then
+                
+                oTransferencia.Carrega myRst.Fields("transferencia_id").Value
                 oConta.Carrega oMovimentacao.CarregaContaID(oTransferencia.MovimentacaoDeID)
                 oContaPara.Carrega oMovimentacao.CarregaContaID(oTransferencia.MovimentacaoParaID)
-            
-                
-                
-                If oMovimentacao.Valor < 0 Then
+    
+                If myRst.Fields("valor").Value < 0 Then
                     .List(.ListCount - 1, 2) = "---Transferência-->"
                     .List(.ListCount - 1, 3) = "Foi para a conta: " & oContaPara.Conta
                 Else
                     .List(.ListCount - 1, 2) = "<--Transferência---"
                     .List(.ListCount - 1, 3) = "Veio da conta : " & oConta.Conta
                 End If
-
-            ' Se não for uma transferência entre contas...
             Else
-                oFornecedor.Carrega oMovimentacao.FornecedorID
-                oSubcategoria.Carrega oMovimentacao.SubcategoriaID
+                oFornecedor.Carrega myRst.Fields("fornecedor_id").Value
+                oSubcategoria.Carrega myRst.Fields("subcategoria_id").Value
                 oCategoria.Carrega oSubcategoria.CategoriaID
                 
                 .List(.ListCount - 1, 2) = oFornecedor.NomeFantasia
                 .List(.ListCount - 1, 3) = oCategoria.Categoria & " : " & oSubcategoria.Subcategoria
             End If
-
-            .List(.ListCount - 1, 4) = Space(10 - Len(Format(oMovimentacao.Valor, "#,##0.00"))) & Format(oMovimentacao.Valor, "#,##0.00")
-
-            curSaldo = curSaldo + oMovimentacao.Valor
-
+            
+            .List(.ListCount - 1, 4) = Space(10 - Len(Format(myRst.Fields("valor").Value, "#,##0.00"))) & Format(myRst.Fields("valor").Value, "#,##0.00")
+            
+            curSaldo = curSaldo + myRst.Fields("valor").Value
+            
             .List(.ListCount - 1, 5) = Space(12 - Len(Format(curSaldo, "#,##0.00"))) & Format(curSaldo, "#,##0.00")
 
-            If Not oMovimentacao.AgendamentoID = 0 Then
+            If Not myRst.Fields("agendamento_id").Value = 0 Then
             
-                oAgendamento.Carrega oMovimentacao.AgendamentoID
+                oAgendamento.Carrega myRst.Fields("agendamento_id").Value
 
                 If oAgendamento.Recorrente = False Then
                     .List(.ListCount - 1, 6) = Format(oAgendamento.ID & "", "00000000") & "-ú"
                 Else
                     If oAgendamento.Infinito = False Then
-                        .List(.ListCount - 1, 6) = Format(oAgendamento.ID & "", "00000000") & "-" & oMovimentacao.Parcela
+                        .List(.ListCount - 1, 6) = Format(oAgendamento.ID & "", "00000000") & "-" & myRst.Fields("parcela").Value
                     Else
                         .List(.ListCount - 1, 6) = Format(oAgendamento.ID & "", "00000000") & "-i"
                     End If
 
                 End If
             Else
-                .List(.ListCount - 1, 6) = ""
+                .List(.ListCount - 1, 6) = myRst.Fields("observacao").Value
             End If
-        Next n
-    
-        .ListIndex = lstRegistros.ListCount - 1
+            
+            lCount = lCount + 1
+            myRst.MoveNext
+        Wend
     End With
+        
+    lblPaginaAtual.Caption = Format(Pagina, "#,##0")
+    lblPaginaTotal.Caption = myRst.PageCount
+    'scrPagina.Value = myRst.AbsolutePage
     
 End Sub
+Private Function CalculaAcumulado(PosicaoRegistro As Long) As Currency
+
+    Dim c As Currency
+    
+    myRst.AbsolutePosition = 1
+    
+    Do While myRst.AbsolutePosition < (PosicaoRegistro)
+    
+        c = c + IIf(IsNull(myRst.Fields("valor").Value), 0, myRst.Fields("valor").Value)
+        
+        myRst.MoveNext
+    Loop
+    
+    CalculaAcumulado = c
+
+End Function
 Private Sub cbbGrupoPopular()
        
     Dim col As Collection
@@ -886,5 +964,6 @@ Private Sub Campos(Acao As String)
     End If
 End Sub
 Private Sub UserForm_Terminate()
+    Set myRst = Nothing
     Call Desconecta
 End Sub

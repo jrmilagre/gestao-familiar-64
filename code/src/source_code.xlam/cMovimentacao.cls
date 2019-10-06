@@ -686,6 +686,25 @@ Public Function ListaMovimentacoes(ContaID As Integer) As Collection
     Set ListaMovimentacoes = col
 
 End Function
+Public Function RetornaMovimentacoes(ContaID As Long) As ADODB.Recordset
+
+    sSQL = "SELECT * "
+    sSQL = sSQL & "FROM " & tbl & " "
+    sSQL = sSQL & "WHERE "
+    sSQL = sSQL & "conta_id = " & ContaID & " "
+    sSQL = sSQL & "ORDER BY liquidado"
+    
+    Set RetornaMovimentacoes = New ADODB.Recordset
+    
+    With RetornaMovimentacoes
+        .CursorLocation = adUseServer
+        .CursorType = adOpenStatic
+        .LockType = adLockReadOnly
+        .PageSize = 29
+        .Open sSQL, cnn
+    End With
+    
+End Function
 
 Public Function CarregaContaID(ID As Long) As Long
 

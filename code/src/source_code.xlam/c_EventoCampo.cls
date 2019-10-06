@@ -81,6 +81,12 @@ Private Sub cGeneric_KeyPress(ByVal KeyAscii As MSForms.ReturnInteger)
                 KeyAscii = 44 'Adiciona uma vírgula
             End If
             
+            Case 45
+            
+            If cGeneric.SelStart > 1 Then
+                KeyAscii = 0
+            End If
+            
             Case Else
                 KeyAscii = 0 'Não deixa nenhuma outra caractere ser escrito
                 MsgBox "Só é permitido número.", vbInformation
